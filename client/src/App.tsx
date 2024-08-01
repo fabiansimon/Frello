@@ -8,7 +8,20 @@ function App() {
   const [count, setCount] = useState(0);
 
   const { data } = trpc.taskList.useQuery({ name: 'Hello' });
-  console.log(data);
+
+  const createUser = trpc.createUser.useMutation();
+
+  const handleUserCreation = async () => {
+    const res = await createUser.mutateAsync({
+      email: 'fabian.simon98@gmail.com',
+      expertise: 'UI Design, Researching new Topics and Frontend Engineering',
+      role: 'Full-Stack Developer',
+      image_url:
+        'https://gravatar.com/avatar/0584b215b5b354d0d358b027a289c37e?s=400&d=robohash&r=x',
+    });
+    console.log(res);
+  };
+
   return (
     <>
       <div>
@@ -35,9 +48,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+        <button onClick={handleUserCreation}>count is {count}</button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>

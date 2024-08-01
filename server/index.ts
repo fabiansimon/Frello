@@ -3,6 +3,9 @@ import cors from 'cors';
 import express from 'express';
 import { z } from 'zod';
 import * as trpcExpress from '@trpc/server/adapters/express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 const t = initTRPC.create();
 
@@ -16,6 +19,28 @@ const appRouter = t.router({
     .query(async ({ input }) => {
       console.log(input);
       return 'hello world';
+    }),
+  createUser: t.procedure
+    .input(
+      z.object({
+        email: z.string().email(),
+        image_url: z.string().optional(),
+        role: z.string(),
+        expertise: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { email, image_url, role, expertise } = input;
+      const user = await prisma.user.create({
+        data: {
+          email,
+          image_url,
+          role,
+          expertise,
+        },
+      });
+
+      return user;
     }),
 });
 
