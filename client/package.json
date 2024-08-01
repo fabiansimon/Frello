@@ -15,14 +15,25 @@
     "@trpc/next": "10.29.1",
     "@trpc/react-query": "10.0.0",
     "@trpc/server": "10.29.1",
+    "@types/uuid": "^10.0.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.3.19",
+    "hugeicons-react": "^0.3.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.4.0",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@types/node": "^22.0.2",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "daisyui": "^4.12.10",
     "eslint": "^8.57.0",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7",
     "typescript": "^5.5.3",
     "vite": "^5.3.4"
   }

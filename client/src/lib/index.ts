@@ -16,14 +16,15 @@ export interface User {
   updated_at: Date;
 }
 
-export interface Task {
+interface Task {
   id: string;
-  created_at: Date;
-  updated_at: Date;
-  assignee?: User | null;
+  assigneeId?: string;
+  createdAt: Date;
+  updatedAt: Date;
   title: string;
   description: string;
   status: TaskStatus;
+  projectId: string;
 }
 
 export interface Project {
@@ -34,4 +35,12 @@ export interface Project {
   tasks: Task[];
   created_at: Date;
   updated_at: Date;
+}
+
+export enum BreakPoint {
+  SM,
+  MD,
+  LG,
+  XL,
+  XXL,
 }
