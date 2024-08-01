@@ -1,14 +1,23 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import './App.css';
 import { trpc } from './trpc';
 import Navbar from './components/NavBar';
 import { Task } from '@prisma/client';
-import { cn, FILTER_BY_STATUS, generateId } from './lib/utils';
+import {
+  cn,
+  FILTER_BY_STATUS,
+  generateId,
+  getDateDifference,
+  getReadableDate,
+} from './lib/utils';
 import { BreakPoint, TaskStatus } from './lib';
 import { Add01Icon } from 'hugeicons-react';
 import { motion } from 'framer-motion';
 import useBreakingPoints from './hooks/useBreakingPoint';
 import Text from './components/Text';
+import ModalController from './controllers/ModalController';
+import TaskModal from './components/TaskModal';
+import InputTaskModal from './components/InputTaskModal';
 
 interface TaskColumnProps {
   tasks: Task[];
@@ -17,14 +26,23 @@ interface TaskColumnProps {
   className?: string;
 }
 
+interface TaskContainerProps {
+  task: Task;
+  className?: string;
+}
+
 function App() {
   const breakpointTriggered = useBreakingPoints(BreakPoint.XL);
-
-  const [count, setCount] = useState(0);
 
   const { data } = trpc.taskList.useQuery({ name: 'Hello' });
 
   const createUser = trpc.createUser.useMutation();
+
+  useEffect(() => {
+    setTimeout(() => {
+      ModalController.show(<InputTaskModal />);
+    }, 1000);
+  }, []);
 
   const handleUserCreation = async () => {
     const res = await createUser.mutateAsync({
@@ -99,10 +117,10 @@ function App() {
   }, [filteredTasks]);
 
   return (
-    <div className="fixed flex grow flex-col min-h-full min-w-[100%] gap-4">
+    <div className="fixed flex grow max-w-full flex-col min-h-full min-w-[100%] gap-4">
       <Navbar />
       <div className="flex grow w-full justify-between">
-        <div className="flex relative grow pb-[18%] overflow-x-auto space-x-5 px-4 md:px-10">
+        <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 px-4 md:px-10">
           {boardCols.map(({ status, color, title, tasks }) => (
             <TaskColumn
               key={status}
@@ -111,15 +129,15 @@ function App() {
               tasks={tasks}
             />
           ))}
-          <motion.div
-            initial="hidden"
-            variants={{
-              hidden: { translateY: '80%' },
-              visible: { translateY: 0 },
-            }}
-            className="absolute rounded-xl bottom-0 right-0 left-0 xl:right-20 xl:left-20 bg-white h-[90%]"
-          ></motion.div>
         </div>
+        <motion.div
+          initial="hidden"
+          variants={{
+            hidden: { translateY: '80%' },
+            visible: { translateY: 0 },
+          }}
+          className="absolute rounded-xl bottom-0 right-0 left-0 xl:right-20 xl:left-20 bg-white h-[90%]"
+        ></motion.div>
         {!breakpointTriggered && (
           <div className="max-w-80 rounded-xl w-full bg-green-400 mx-4 mb-6" />
         )}
@@ -134,18 +152,79 @@ function TaskColumn({
   color,
   className,
 }: TaskColumnProps): JSX.Element {
+  const handleAddTask = () => {
+    ModalController.show(<InputTaskModal />);
+  };
   return (
-    <div className={cn('min-w-64 space-y-2', className)}>
+    <div className={cn('min-w-72 space-y-3', className)}>
       <div className="flex justify-between items-end">
-        <Text.Body className="font-medium">{title}</Text.Body>
-        <div className="rounded-full cursor-pointer h-8 w-8 flex items-center justify-center bg-black/10">
+        <Text.Body className="font-medium text-white">{title}</Text.Body>
+        <div
+          onClick={handleAddTask}
+          className="rounded-full cursor-pointer h-8 w-8 flex items-center justify-center bg-black/10"
+        >
           <Add01Icon
             className="text-white"
             size={14}
           />
         </div>
       </div>
-      <div className={cn('flex grow h-full', color)}></div>
+      <div
+        className={cn(
+          'flex flex-col p-3 grow space-y-4 h-full rounded-xl shadow-sm shadow-black/10',
+          color
+        )}
+      >
+        {tasks.map((task) => (
+          <TaskContainer task={task} />
+        ))}
+        <div
+          onClick={handleAddTask}
+          className="rounded-full cursor-pointer h-8 w-8 flex items-center justify-center bg-black/10"
+        >
+          <Add01Icon
+            className="text-white"
+            size={14}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TaskContainer({ task, className }: TaskContainerProps): JSX.Element {
+  const { createdAt, description, title, status, updatedAt } = task;
+  const { text: differenceText, unit } = getDateDifference(createdAt);
+
+  return (
+    <div
+      onClick={() => ModalController.show(<TaskModal task={task} />)}
+      className={cn(
+        'bg-white cursor-pointer text-start h-40 px-3 py-4 rounded-xl space-y-2 hover:scale-[102%] transition duration-100 ease-in-out transform',
+        className
+      )}
+    >
+      <div className="border-b border-black/10 pb-2 flex justify-between items-center -mt-2">
+        <Text.Subtitle className="text-black">
+          {getReadableDate(createdAt, true)}
+        </Text.Subtitle>
+        <div
+          className={cn(
+            'rounded-md px-2 py-1',
+            unit === 'day' ? 'bg-error/30' : 'bg-success/40'
+          )}
+        >
+          <Text.Subtitle
+            className={cn(unit === 'day' ? 'text-error' : 'text-success')}
+          >
+            {differenceText}
+          </Text.Subtitle>
+        </div>
+      </div>
+      <Text.Headline className="text-black pt-1 font-medium text-[15px]">
+        {title}
+      </Text.Headline>
+      <Text.Body className="text-black/60">{description}</Text.Body>
     </div>
   );
 }

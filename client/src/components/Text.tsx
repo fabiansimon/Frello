@@ -16,7 +16,7 @@ Text.Headline = Headline;
 function Body({ children, className, ...rest }: TextProps): JSX.Element {
   return (
     <p
-      className={cn('text-sm', className)}
+      className={cn('text-sm text-black', className)}
       {...rest}
     >
       {children}
@@ -26,7 +26,7 @@ function Body({ children, className, ...rest }: TextProps): JSX.Element {
 function Subtitle({ children, className, ...rest }: TextProps): JSX.Element {
   return (
     <p
-      className={cn('text-xs font-medium', className)}
+      className={cn('text-xs font-medium text-black', className)}
       {...rest}
     >
       {children}
@@ -35,11 +35,11 @@ function Subtitle({ children, className, ...rest }: TextProps): JSX.Element {
 }
 function Headline({ children, className, ...rest }: TextProps): JSX.Element {
   return (
-    <p
-      className={cn('text-md', className)}
+    <h1
+      className={cn('text-lg text-black', className)}
       {...rest}
     >
       {children}
-    </p>
+    </h1>
   );
 }
