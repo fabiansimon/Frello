@@ -1,54 +1,29 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import './App.css';
-import { trpc } from './trpc';
 import Navbar from './components/NavBar';
 import { Task } from '@prisma/client';
-import {
-  cn,
-  FILTER_BY_STATUS,
-  generateId,
-  getDateDifference,
-  getReadableDate,
-} from './lib/utils';
-import { BreakPoint, TaskStatus } from './lib';
-import { Add01Icon } from 'hugeicons-react';
-import { motion } from 'framer-motion';
+import { generateId } from './lib/utils';
+import { BreakPoint, PopulatedStatusType, StatusType } from './lib';
 import useBreakingPoints from './hooks/useBreakingPoint';
-import Text from './components/Text';
-import ModalController from './controllers/ModalController';
-import TaskModal from './components/TaskModal';
-import InputTaskModal from './components/InputTaskModal';
+import TaskColumn from './components/TaskColumn';
+import UserTaskSheet from './components/UserTasksSheet';
+import { FILTER_BY_STATUS, TASK_STATUS } from './constants/TaskStatus';
+import { todo } from 'node:test';
 
-interface TaskColumnProps {
-  tasks: Task[];
-  title: string;
-  color: string;
-  className?: string;
-}
-
-interface TaskContainerProps {
-  task: Task;
-  className?: string;
-}
+const tasks: Task[] = Array.from({ length: 14 }, (_, index) => ({
+  assigneeId: generateId(),
+  createdAt: new Date(),
+  title: 'ChatGTP 5.0 Integration',
+  description:
+    'Integrate the new ChatGPT 5.0 version and add is as an option for the user',
+  id: generateId(),
+  projectId: generateId(),
+  status: ['InProgress', 'ToDo', 'InReview', 'Declined', 'Done'][index % 5],
+  updatedAt: new Date(),
+}));
 
 function App() {
   const breakpointTriggered = useBreakingPoints(BreakPoint.XL);
-
-  const { data } = trpc.taskList.useQuery({ name: 'Hello' });
-
-  const tasks: Task[] = Array.from({ length: 14 }, (_, index) => ({
-    assigneeId: generateId(),
-    createdAt: new Date(),
-    title: 'ChatGTP 5.0 Integration',
-    description:
-      'Integrate the new ChatGPT 5.0 version and add is as an option for the user',
-    id: generateId(),
-    projectId: generateId(),
-    status: ['InProgress', 'ToDo', 'InReview', 'Declined', 'Done'][
-      index % 5
-    ] as TaskStatus,
-    updatedAt: new Date(),
-  }));
 
   const filteredTasks = useMemo(() => {
     return {
@@ -60,38 +35,29 @@ function App() {
     };
   }, [tasks]);
 
-  const boardCols = useMemo(() => {
+  const boardCols: PopulatedStatusType[] = useMemo(() => {
     const { progressTasks, toDoTasks, reviewTasks, declinedTasks, doneTasks } =
       filteredTasks;
+
     return [
       {
-        status: 'ToDo',
-        color: 'bg-blue-500',
-        title: 'To Do',
+        ...TASK_STATUS.ToDo,
         tasks: toDoTasks,
       },
       {
-        status: 'InProgress',
-        color: 'bg-yellow-500',
-        title: 'In Progress',
+        ...TASK_STATUS.InProgress,
         tasks: progressTasks,
       },
       {
-        status: 'InReview',
-        color: 'bg-pink-500',
-        title: 'In Review',
+        ...TASK_STATUS.InReview,
         tasks: reviewTasks,
       },
       {
-        status: 'Declined',
-        color: 'bg-red-500',
-        title: 'Declined',
+        ...TASK_STATUS.Declined,
         tasks: declinedTasks,
       },
       {
-        status: 'Done',
-        color: 'bg-green-500',
-        title: 'Done',
+        ...TASK_STATUS.Done,
         tasks: doneTasks,
       },
     ];
@@ -102,110 +68,18 @@ function App() {
       <Navbar />
       <div className="flex grow w-full justify-between">
         <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 px-4 md:px-10">
-          {boardCols.map(({ status, color, title, tasks }) => (
+          {boardCols.map((data) => (
             <TaskColumn
-              key={status}
-              color={color}
-              title={title}
-              tasks={tasks}
+              key={data.id}
+              data={data}
             />
           ))}
         </div>
-        <motion.div
-          initial="hidden"
-          variants={{
-            hidden: { translateY: '80%' },
-            visible: { translateY: 0 },
-          }}
-          className="absolute rounded-xl bottom-0 right-0 left-0 xl:right-20 xl:left-20 bg-white h-[90%]"
-        ></motion.div>
         {!breakpointTriggered && (
           <div className="max-w-80 rounded-xl w-full bg-green-400 mx-4 mb-6" />
         )}
+        <UserTaskSheet />
       </div>
-    </div>
-  );
-}
-
-function TaskColumn({
-  tasks,
-  title,
-  color,
-  className,
-}: TaskColumnProps): JSX.Element {
-  const handleAddTask = () => {
-    ModalController.show(<InputTaskModal />);
-  };
-  return (
-    <div className={cn('min-w-72 space-y-3', className)}>
-      <div className="flex justify-between items-end">
-        <Text.Body className="font-medium text-white">{title}</Text.Body>
-        <div
-          onClick={handleAddTask}
-          className="rounded-full cursor-pointer h-8 w-8 flex items-center justify-center bg-black/10"
-        >
-          <Add01Icon
-            className="text-white"
-            size={14}
-          />
-        </div>
-      </div>
-      <div
-        className={cn(
-          'flex flex-col p-3 grow space-y-4 h-full rounded-xl shadow-sm shadow-black/10',
-          color
-        )}
-      >
-        {tasks.map((task) => (
-          <TaskContainer task={task} />
-        ))}
-        <div
-          onClick={handleAddTask}
-          className="rounded-full cursor-pointer h-8 w-8 flex items-center justify-center bg-black/10"
-        >
-          <Add01Icon
-            className="text-white"
-            size={14}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TaskContainer({ task, className }: TaskContainerProps): JSX.Element {
-  const { createdAt, description, title, status, updatedAt } = task;
-  const { text: differenceText, unit } = getDateDifference(createdAt);
-
-  return (
-    <div
-      onClick={() => ModalController.show(<TaskModal task={task} />)}
-      className={cn(
-        'bg-white cursor-pointer text-start h-40 px-3 py-4 rounded-xl space-y-2 hover:scale-[102%] transition duration-100 ease-in-out transform',
-        className
-      )}
-    >
-      <div className="border-b border-black/10 pb-2 flex justify-between items-center -mt-2">
-        <Text.Subtitle className="text-black">
-          {getReadableDate(createdAt, true)}
-        </Text.Subtitle>
-        <div
-          className={cn(
-            'rounded-md px-2 py-1',
-            unit === 'day' ? 'bg-error/30' : 'bg-success/40'
-          )}
-        >
-          <Text.Subtitle
-            className={cn(unit === 'day' ? 'text-error' : 'text-success')}
-          >
-            {differenceText}
-          </Text.Subtitle>
-        </div>
-      </div>
-      <Text.Headline className="text-black pt-1 font-medium text-[15px]">
-        {title}
-      </Text.Headline>
-      <Text.Body className="text-black/60">{description}</Text.Body>
     </div>
   );
 }

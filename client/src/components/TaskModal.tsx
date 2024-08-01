@@ -7,16 +7,7 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ task }: TaskModalProps): JSX.Element {
-  const {
-    title,
-    assigneeId,
-    createdAt,
-    description,
-    id,
-    projectId,
-    status,
-    updatedAt,
-  } = task;
+  const { title, assigneeId, description, id, projectId, status } = task;
   return (
     <div
       className={cn(

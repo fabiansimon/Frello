@@ -3,15 +3,20 @@ import Text from './Text';
 import { Task } from '@prisma/client';
 import { useMemo, useState } from 'react';
 import { trpc } from '@/trpc';
+import StatusChip from './StatusChip';
+import { StatusType } from '@/lib';
+import { TASK_STATUS } from '@/constants/TaskStatus';
 
 interface InputTaskModalProps {
   task?: Task;
+  status?: StatusType;
 }
 
 interface TaskInput {
   title: string;
   description: string;
   assigneeId: string;
+  status: StatusType;
 }
 
 enum InputType {
@@ -22,12 +27,14 @@ enum InputType {
 
 export default function InputTaskModal({
   task,
+  status,
 }: InputTaskModalProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [input, setInput] = useState<TaskInput>({
     title: '',
     description: '',
     assigneeId: '',
+    status: status ?? TASK_STATUS.ToDo,
   });
 
   const createTask = trpc.createTask.useMutation();
@@ -78,9 +85,15 @@ export default function InputTaskModal({
         'bg-white grow flex max-w-[70%] flex-col text-start px-3 py-4 rounded-xl space-y-2'
       )}
     >
-      <Text.Headline className="text-black font-medium text-[15px]">
-        Create new Task
-      </Text.Headline>
+      <div className="flex justify-between">
+        <Text.Headline className="text-black font-medium text-[15px]">
+          Create new Task
+        </Text.Headline>
+        <StatusChip
+          className="hover:scale-[104%]"
+          status={input.status}
+        />
+      </div>
 
       {/* Title Part  */}
       <Text.Body className="font-medium pt-4">Title</Text.Body>
@@ -104,23 +117,24 @@ export default function InputTaskModal({
         placeholder="Add as much detail as possible for the AI Suggestions to work properly"
       ></textarea>
 
-      {/* Assigne Part */}
+      {/* Assignee Part */}
       <Text.Body className="font-medium pt-4">Assign</Text.Body>
       <div className="flex justify-between space-x-2">
         <select
+          value={input.assigneeId}
           onChange={(e) => handleInput(InputType.ASSIGNEE, e.target.value)}
           className="select text-xs text-start select-sm text-black select-bordered bg-transparent w-full h-12"
         >
           <option
             disabled
-            selected
+            value=""
           >
-            Pick as assignee
+            Pick an assignee
           </option>
           {Array.from({ length: 4 }, () => 'hello').map((user, index) => (
             <option
               key={index}
-              value={index}
+              value={index.toString()}
             >
               {user}
             </option>

@@ -15,10 +15,6 @@ export function generateId() {
   return uuidv4();
 }
 
-export function FILTER_BY_STATUS(type: string) {
-  return (task: Task) => task.status === type;
-}
-
 export function getReadableDate(date?: Date, short: boolean = false) {
   const now = date ? new Date(date) : new Date();
 
