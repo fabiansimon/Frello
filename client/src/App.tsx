@@ -8,30 +8,34 @@ import useBreakingPoints from './hooks/useBreakingPoint';
 import TaskColumn from './components/TaskColumn';
 import UserTaskSheet from './components/UserTasksSheet';
 import { FILTER_BY_STATUS, TASK_STATUS } from './constants/TaskStatus';
-import { todo } from 'node:test';
+import { trpc } from './trpc';
 
-const tasks: Task[] = Array.from({ length: 14 }, (_, index) => ({
-  assigneeId: generateId(),
-  createdAt: new Date(),
-  title: 'ChatGTP 5.0 Integration',
-  description:
-    'Integrate the new ChatGPT 5.0 version and add is as an option for the user',
-  id: generateId(),
-  projectId: generateId(),
-  status: ['InProgress', 'ToDo', 'InReview', 'Declined', 'Done'][index % 5],
-  updatedAt: new Date(),
-}));
+// const tasks: Task[] = Array.from({ length: 14 }, (_, index) => ({
+//   assigneeId: generateId(),
+//   createdAt: new Date(),
+//   title: 'ChatGTP 5.0 Integration',
+//   description:
+//     'Integrate the new ChatGPT 5.0 version and add is as an option for the user',
+//   id: generateId(),
+//   projectId: generateId(),
+//   status: ['InProgress', 'ToDo', 'InReview', 'Declined', 'Done'][index % 5],
+//   updatedAt: new Date(),
+// }));
 
 function App() {
   const breakpointTriggered = useBreakingPoints(BreakPoint.XL);
 
+  const { data: tasks } = trpc.fetchTasks.useQuery({
+    projectId: 'example-project-id',
+  });
+
   const filteredTasks = useMemo(() => {
     return {
-      progressTasks: tasks.filter(FILTER_BY_STATUS('InProgress')),
-      toDoTasks: tasks.filter(FILTER_BY_STATUS('ToDo')),
-      reviewTasks: tasks.filter(FILTER_BY_STATUS('InReview')),
-      declinedTasks: tasks.filter(FILTER_BY_STATUS('Declined')),
-      doneTasks: tasks.filter(FILTER_BY_STATUS('Done')),
+      progressTasks: tasks ? tasks.filter(FILTER_BY_STATUS('InProgress')) : [],
+      toDoTasks: tasks ? tasks.filter(FILTER_BY_STATUS('ToDo')) : [],
+      reviewTasks: tasks ? tasks.filter(FILTER_BY_STATUS('InReview')) : [],
+      declinedTasks: tasks ? tasks.filter(FILTER_BY_STATUS('Declined')) : [],
+      doneTasks: tasks ? tasks.filter(FILTER_BY_STATUS('Done')) : [],
     };
   }, [tasks]);
 

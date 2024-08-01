@@ -1,11 +1,12 @@
 import { cn } from '@/lib/utils';
 import Text from './Text';
-import { Task } from '@prisma/client';
+import { Task, TaskStatus } from '@prisma/client';
 import { useMemo, useState } from 'react';
 import { trpc } from '@/trpc';
 import StatusChip from './StatusChip';
 import { StatusType } from '@/lib';
 import { TASK_STATUS } from '@/constants/TaskStatus';
+import ModalController from '@/controllers/ModalController';
 
 interface InputTaskModalProps {
   task?: Task;
@@ -41,16 +42,17 @@ export default function InputTaskModal({
 
   const handleAddTask = async () => {
     setIsLoading(true);
-    const { title, description, assigneeId } = input;
+    const { title, description, assigneeId, status } = input;
 
     try {
       const task = await createTask.mutateAsync({
         description,
         title,
         projectId: 'example-project-id',
-        status: 'ToDo',
+        status: status.id as TaskStatus,
         assigneeId: assigneeId || undefined,
       });
+      ModalController.close();
     } catch (error) {
       console.log(error);
     } finally {

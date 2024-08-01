@@ -10,15 +10,28 @@ const prisma = new PrismaClient();
 const t = initTRPC.create();
 
 const appRouter = t.router({
-  taskList: t.procedure
+  fetchTasks: t.procedure
     .input(
       z.object({
-        name: z.string(),
+        projectId: z.string(),
       })
     )
     .query(async ({ input }) => {
-      console.log(input);
-      return 'hello world';
+      const { projectId } = input;
+      try {
+        const tasks = await prisma.task.findMany({
+          where: {
+            projectId,
+          },
+          include: {
+            Project: true,
+          },
+        });
+
+        return tasks;
+      } catch (error) {
+        throw new Error('Error creating task');
+      }
     }),
   createTask: t.procedure
     .input(
@@ -32,43 +45,24 @@ const appRouter = t.router({
     )
     .mutation(async ({ input }) => {
       const { title, description, status, projectId, assigneeId } = input;
-      const task = await prisma.task.create({
-        data: {
-          title,
-          description,
-          status,
-          projectId,
-          assigneeId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
+      try {
+        const task = await prisma.task.create({
+          data: {
+            title,
+            description,
+            status,
+            projectId,
+            assigneeId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
 
-      return task;
+        return task;
+      } catch (error) {
+        throw new Error('Error creating task');
+      }
     }),
-
-  // createUser: t.procedure
-  //   .input(
-  //     z.object({
-  //       email: z.string().email(),
-  //       image_url: z.string().optional(),
-  //       role: z.string(),
-  //       expertise: z.string(),
-  //     })
-  //   )
-  //   .mutation(async ({ input }) => {
-  //     const { email, image_url, role, expertise } = input;
-  //     const user = await prisma.user.create({
-  //       data: {
-  //         email,
-  //         image_url,
-  //         role,
-  //         expertise,
-  //       },
-  //     });
-
-  //     return user;
-  //   }),
 });
 
 const app = express();
