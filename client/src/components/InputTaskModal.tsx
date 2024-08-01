@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import Text from './Text';
 import { Task } from '@prisma/client';
 import { useMemo, useState } from 'react';
+import { trpc } from '@/trpc';
 
 interface InputTaskModalProps {
   task?: Task;
@@ -29,9 +30,32 @@ export default function InputTaskModal({
     assigneeId: '',
   });
 
+  const createTask = trpc.createTask.useMutation();
+
+  const handleAddTask = async () => {
+    setIsLoading(true);
+    const { title, description, assigneeId } = input;
+
+    try {
+      const task = await createTask.mutateAsync({
+        description,
+        title,
+        projectId: 'example-project-id',
+        status: 'ToDo',
+        assigneeId: assigneeId || undefined,
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const validInput = useMemo(() => {
     return input.title.trim() && input.description.trim();
   }, [input]);
+
+  const isUpdate = !!task;
 
   const handleInput = (type: InputType, value?: string) => {
     setInput((prev) => {
@@ -113,6 +137,7 @@ export default function InputTaskModal({
       <div className="divider" />
 
       <button
+        onClick={handleAddTask}
         disabled={!validInput || isLoading}
         className="btn btn-primary max-h-12"
       >

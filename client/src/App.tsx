@@ -36,25 +36,6 @@ function App() {
 
   const { data } = trpc.taskList.useQuery({ name: 'Hello' });
 
-  const createUser = trpc.createUser.useMutation();
-
-  useEffect(() => {
-    setTimeout(() => {
-      ModalController.show(<InputTaskModal />);
-    }, 1000);
-  }, []);
-
-  const handleUserCreation = async () => {
-    const res = await createUser.mutateAsync({
-      email: 'fabian.simon98@gmail.com',
-      expertise: 'UI Design, Researching new Topics and Frontend Engineering',
-      role: 'Full-Stack Developer',
-      image_url:
-        'https://gravatar.com/avatar/0584b215b5b354d0d358b027a289c37e?s=400&d=robohash&r=x',
-    });
-    console.log(res);
-  };
-
   const tasks: Task[] = Array.from({ length: 14 }, (_, index) => ({
     assigneeId: generateId(),
     createdAt: new Date(),
