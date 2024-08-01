@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import './App.css';
 import Navbar from './components/NavBar';
 import { Task } from '@prisma/client';
@@ -9,18 +9,6 @@ import TaskColumn from './components/TaskColumn';
 import UserTaskSheet from './components/UserTasksSheet';
 import { FILTER_BY_STATUS, TASK_STATUS } from './constants/TaskStatus';
 import { trpc } from './trpc';
-
-// const tasks: Task[] = Array.from({ length: 14 }, (_, index) => ({
-//   assigneeId: generateId(),
-//   createdAt: new Date(),
-//   title: 'ChatGTP 5.0 Integration',
-//   description:
-//     'Integrate the new ChatGPT 5.0 version and add is as an option for the user',
-//   id: generateId(),
-//   projectId: generateId(),
-//   status: ['InProgress', 'ToDo', 'InReview', 'Declined', 'Done'][index % 5],
-//   updatedAt: new Date(),
-// }));
 
 function App() {
   const breakpointTriggered = useBreakingPoints(BreakPoint.XL);

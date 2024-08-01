@@ -63,6 +63,34 @@ const appRouter = t.router({
         throw new Error('Error creating task');
       }
     }),
+  createUser: t.procedure
+    .input(
+      z.object({
+        name: z.string(),
+        role: z.string(),
+        email: z.string(),
+        expertise: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { name, email, expertise, role } = input;
+      try {
+        const user = await prisma.user.create({
+          data: {
+            name,
+            email,
+            expertise,
+            role,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+
+        return user;
+      } catch (error) {
+        throw new Error('Error creating task');
+      }
+    }),
 });
 
 const app = express();

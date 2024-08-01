@@ -15,3 +15,9 @@ export interface StatusType {
 }
 
 export type PopulatedStatusType = StatusType & { tasks: Task[] };
+
+export enum ToastType {
+  ERROR,
+  WARNING,
+  SUCCESS,
+}

@@ -103,6 +103,7 @@ export default function InputTaskModal({
         onInput={({ currentTarget: { value } }) =>
           handleInput(InputType.TITLE, value)
         }
+        value={input.title}
         type="text"
         className="input text-sm bg-white text-black input-bordered w-full"
         placeholder="Deploy Backend"
