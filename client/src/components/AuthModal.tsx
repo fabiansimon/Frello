@@ -1,16 +1,9 @@
 import { cn } from '@/lib/utils';
 import Text from './Text';
 import { useMemo, useState } from 'react';
-import { trpc } from '@/trpc';
-import ToastController from '@/controllers/ToastController';
+import { AuthInput } from '@/lib';
+import { useUserContext } from '@/providers/userProvider';
 import ModalController from '@/controllers/ModalController';
-
-interface AuthInput {
-  name: string;
-  email: string;
-  expertise: string;
-  role: string;
-}
 
 enum InputType {
   NAME,
@@ -20,6 +13,8 @@ enum InputType {
 }
 
 export default function AuthModal(): JSX.Element {
+  const { login } = useUserContext();
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [input, setInput] = useState<AuthInput>({
     email: '',
@@ -27,8 +22,6 @@ export default function AuthModal(): JSX.Element {
     name: '',
     role: '',
   });
-
-  const createUser = trpc.createUser.useMutation();
 
   const validInput = useMemo(() => {
     return (
@@ -40,22 +33,10 @@ export default function AuthModal(): JSX.Element {
   }, [input]);
 
   const handleCreateUser = async () => {
+    setIsLoading(true);
+    await login(input);
     setIsLoading(false);
-
-    const { email, expertise, role, name } = input;
-    try {
-      const user = await createUser.mutateAsync({
-        email,
-        expertise,
-        name,
-        role,
-      });
-      console.log(user);
-      ModalController.close();
-    } catch (error) {
-    } finally {
-      setIsLoading(false);
-    }
+    ModalController.close();
   };
 
   const handleInput = (type: InputType, value?: string) => {

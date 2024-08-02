@@ -1,23 +1,17 @@
 import { cn } from '@/lib/utils';
 import Text from './Text';
-import { Task, TaskStatus } from '@prisma/client';
+import { Task, User } from '@prisma/client';
 import { useMemo, useState } from 'react';
-import { trpc } from '@/trpc';
 import StatusChip from './StatusChip';
-import { StatusType } from '@/lib';
+import { StatusType, TaskInput } from '@/lib';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import ModalController from '@/controllers/ModalController';
+import { ArtificialIntelligence04Icon } from 'hugeicons-react';
+import { useProjectContext } from '@/providers/projectProvider';
 
 interface InputTaskModalProps {
   task?: Task;
   status?: StatusType;
-}
-
-interface TaskInput {
-  title: string;
-  description: string;
-  assigneeId: string;
-  status: StatusType;
 }
 
 enum InputType {
@@ -26,11 +20,18 @@ enum InputType {
   ASSIGNEE,
 }
 
+enum LoadingType {
+  AI,
+  CREATE,
+}
+
 export default function InputTaskModal({
   task,
   status,
 }: InputTaskModalProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { createTask } = useProjectContext();
+  const [isLoading, setIsLoading] = useState<LoadingType | null>(null);
+  const [suggestedUser, setSuggestedUser] = useState<User | null>(null);
   const [input, setInput] = useState<TaskInput>({
     title: '',
     description: '',
@@ -38,33 +39,37 @@ export default function InputTaskModal({
     status: status ?? TASK_STATUS.ToDo,
   });
 
-  const createTask = trpc.createTask.useMutation();
-
-  const handleAddTask = async () => {
-    setIsLoading(true);
-    const { title, description, assigneeId, status } = input;
-
-    try {
-      const task = await createTask.mutateAsync({
-        description,
-        title,
-        projectId: 'example-project-id',
-        status: status.id as TaskStatus,
-        assigneeId: assigneeId || undefined,
-      });
-      ModalController.close();
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const validInput = useMemo(() => {
     return input.title.trim() && input.description.trim();
   }, [input]);
 
   const isUpdate = !!task;
+
+  const handleSuggestion = async () => {
+    setIsLoading(LoadingType.AI);
+    setSuggestedUser({
+      createdAt: new Date(),
+      email: 'fabian.simon98@gmail.com',
+      expertise: '',
+      id: '2',
+      name: 'Fabian Simon',
+      updatedAt: new Date(),
+      role: '',
+    });
+    setIsLoading(null);
+  };
+
+  const handleAddTask = async () => {
+    setIsLoading(LoadingType.CREATE);
+    await createTask(input);
+    setIsLoading(null);
+    ModalController.close();
+  };
+
+  const chooseSuggestion = () => {
+    if (!suggestedUser) return;
+    handleInput(InputType.ASSIGNEE, suggestedUser.id);
+  };
 
   const handleInput = (type: InputType, value?: string) => {
     setInput((prev) => {
@@ -144,18 +149,41 @@ export default function InputTaskModal({
           ))}
         </select>
         <button
-          disabled={isLoading}
+          disabled={isLoading !== null}
+          onClick={handleSuggestion}
           className="btn btn-primary max-h-12"
         >
+          <ArtificialIntelligence04Icon
+            size={18}
+            className="text-white"
+          />
           <Text.Subtitle className="text-white">AI Suggestion</Text.Subtitle>
         </button>
       </div>
+
+      {suggestedUser && (
+        <div className="w-full bg-primary p-4 rounded-md mt-2">
+          <Text.Body className="text-white">
+            AI suggests the user{' '}
+            <strong
+              className="cursor-pointer"
+              onClick={chooseSuggestion}
+            >
+              {suggestedUser.email}
+            </strong>
+          </Text.Body>
+          <Text.Subtitle className="text-white mt-2">
+            This is the conclusion after analyzing the expertise and roles of
+            each participant.
+          </Text.Subtitle>
+        </div>
+      )}
 
       <div className="divider" />
 
       <button
         onClick={handleAddTask}
-        disabled={!validInput || isLoading}
+        disabled={!validInput || isLoading === LoadingType.CREATE}
         className="btn btn-primary max-h-12"
       >
         {isLoading ? (

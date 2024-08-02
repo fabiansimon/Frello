@@ -1,21 +1,24 @@
+import Navbar from '@/components/NavBar';
+import TaskColumn from '@/components/TaskColumn';
+import UserTaskSheet from '@/components/UserTasksSheet';
+import { FILTER_BY_STATUS, TASK_STATUS } from '@/constants/TaskStatus';
+import useBreakingPoints from '@/hooks/useBreakingPoint';
+import { BreakPoint, PopulatedStatusType } from '@/lib';
+import { useProjectContext } from '@/providers/projectProvider';
+import { trpc } from '@/trpc';
 import { useEffect, useMemo } from 'react';
-import './App.css';
-import Navbar from './components/NavBar';
-import { Task } from '@prisma/client';
-import { generateId } from './lib/utils';
-import { BreakPoint, PopulatedStatusType, StatusType } from './lib';
-import useBreakingPoints from './hooks/useBreakingPoint';
-import TaskColumn from './components/TaskColumn';
-import UserTaskSheet from './components/UserTasksSheet';
-import { FILTER_BY_STATUS, TASK_STATUS } from './constants/TaskStatus';
-import { trpc } from './trpc';
+import { useParams } from 'react-router-dom';
 
-function App() {
-  const breakpointTriggered = useBreakingPoints(BreakPoint.XL);
+export default function ProjectPage() {
+  const { project, tasks, load } = useProjectContext();
 
-  const { data: tasks } = trpc.fetchTasks.useQuery({
-    projectId: 'example-project-id',
-  });
+  const isSmall = useBreakingPoints(BreakPoint.XL);
+
+  const { projectId } = useParams();
+
+  useEffect(() => {
+    if (projectId) load(projectId);
+  }, [projectId]);
 
   const filteredTasks = useMemo(() => {
     return {
@@ -67,7 +70,7 @@ function App() {
             />
           ))}
         </div>
-        {!breakpointTriggered && (
+        {!isSmall && (
           <div className="max-w-80 rounded-xl w-full bg-green-400 mx-4 mb-6" />
         )}
         <UserTaskSheet />
@@ -75,5 +78,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

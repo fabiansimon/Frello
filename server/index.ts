@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 const t = initTRPC.create();
 
 const appRouter = t.router({
-  fetchTasks: t.procedure
+  fetchProject: t.procedure
     .input(
       z.object({
         projectId: z.string(),
@@ -23,16 +23,52 @@ const appRouter = t.router({
           where: {
             projectId,
           },
-          include: {
-            Project: true,
+        });
+
+        const project = await prisma.project.findFirst({
+          where: {
+            id: projectId,
           },
         });
 
-        return tasks;
+        return {
+          tasks,
+          project,
+        };
       } catch (error) {
-        throw new Error('Error creating task');
+        console.error(error);
+        throw new Error('Error fetching tasks');
       }
     }),
+
+  createProject: t.procedure
+    .input(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { title, description } = input;
+      try {
+        const project = await prisma.project.create({
+          data: {
+            title,
+            description,
+          },
+          include: {
+            users: true,
+            tasks: true,
+          },
+        });
+
+        return project;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Error creating project');
+      }
+    }),
+
   createTask: t.procedure
     .input(
       z.object({
@@ -53,13 +89,13 @@ const appRouter = t.router({
             status,
             projectId,
             assigneeId,
-            createdAt: new Date(),
             updatedAt: new Date(),
           },
         });
 
         return task;
       } catch (error) {
+        console.error(error);
         throw new Error('Error creating task');
       }
     }),
@@ -81,7 +117,6 @@ const appRouter = t.router({
             email,
             expertise,
             role,
-            createdAt: new Date(),
             updatedAt: new Date(),
           },
         });

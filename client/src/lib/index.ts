@@ -21,3 +21,22 @@ export enum ToastType {
   WARNING,
   SUCCESS,
 }
+
+export interface AuthInput {
+  name: string;
+  email: string;
+  expertise: string;
+  role: string;
+}
+
+export interface ProjectInput {
+  title: string;
+  description: string;
+}
+
+export interface TaskInput {
+  title: string;
+  description: string;
+  status: StatusType;
+  assigneeId: string;
+}
