@@ -1,6 +1,6 @@
 import { route, ROUTES } from '@/constants/routes';
 import ToastController from '@/controllers/ToastController';
-import { ProjectInput, TaskInput } from '@/lib';
+import { ProjectInput, StatusType, TaskInput } from '@/lib';
 import { TaskStatus } from '@prisma/client';
 import { trpc } from '@/trpc';
 import { Project, Task } from '@prisma/client';
@@ -13,12 +13,22 @@ import {
   useEffect,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { TASK_STATUS } from '@/constants/TaskStatus';
+
+interface UpdateTaskStatusProps {
+  taskId: string;
+  status: StatusType;
+}
 
 interface ProjectContextType {
   project: Project | null;
   tasks: Task[];
   isLoading: boolean;
   load: (projectId: string) => Promise<void>;
+  updateTaskStatus: ({
+    taskId,
+    status,
+  }: UpdateTaskStatusProps) => Promise<void>;
   createProject: (input: ProjectInput) => Promise<void>;
   createTask: (input: TaskInput) => Promise<void>;
 }
@@ -41,6 +51,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   // Mutations
   const _createProject = trpc.createProject.useMutation();
   const _createTask = trpc.createTask.useMutation();
+  const _updateTask = trpc.updateTask.useMutation();
 
   useEffect(() => {
     if (error) ToastController.showErrorToast({ description: error.message });
@@ -55,6 +66,32 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(
     async (projectId: string) => setProjectId(projectId),
+    []
+  );
+
+  const updateTaskStatus = useCallback(
+    async ({ taskId, status }: UpdateTaskStatusProps) => {
+      try {
+        await _updateTask.mutateAsync({
+          id: taskId,
+          status: TASK_STATUS[status.id].id as TaskStatus,
+        });
+        setTasks((prev) =>
+          prev.map((task) => {
+            if (task.id === taskId) {
+              return {
+                ...task,
+                status: TASK_STATUS[status.id].id as TaskStatus,
+              };
+            }
+            return task;
+          })
+        );
+      } catch (error) {
+        console.error(error);
+        ToastController.showErrorToast({ description: error.message });
+      }
+    },
     []
   );
 
@@ -75,10 +112,8 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
 
   const createTask = useCallback(
     async (input: TaskInput) => {
-      console.log(project);
       if (!project) return;
       const { title, description, status, assigneeId } = input;
-      console.log(title, description, status, assigneeId);
       try {
         const _task = await _createTask.mutateAsync({
           description,
@@ -96,7 +131,15 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     [project]
   );
 
-  const value = { project, tasks, isLoading, createProject, createTask, load };
+  const value = {
+    project,
+    tasks,
+    isLoading,
+    updateTaskStatus,
+    createProject,
+    createTask,
+    load,
+  };
   return (
     <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
   );

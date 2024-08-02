@@ -99,6 +99,28 @@ const appRouter = t.router({
         throw new Error('Error creating task');
       }
     }),
+
+  updateTask: t.procedure
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        status: z
+          .enum(['ToDo', 'InProgress', 'InReview', 'Declined', 'Done'])
+          .optional(),
+        assigneeId: z.string().nullable().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { id, ...updates } = input;
+      const task = await prisma.task.update({
+        where: { id },
+        data: updates,
+      });
+
+      return task;
+    }),
   createUser: t.procedure
     .input(
       z.object({

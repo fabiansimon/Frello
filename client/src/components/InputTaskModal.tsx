@@ -18,6 +18,7 @@ enum InputType {
   TITLE,
   DESCRIPTION,
   ASSIGNEE,
+  STATUS,
 }
 
 enum LoadingType {
@@ -97,6 +98,7 @@ export default function InputTaskModal({
           Create new Task
         </Text.Headline>
         <StatusChip
+          onSelect={(status) => setInput((prev) => ({ ...prev, status }))}
           className="hover:scale-[104%]"
           status={input.status}
         />
