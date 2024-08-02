@@ -6,12 +6,17 @@ import StatusChip from './StatusChip';
 import { StatusType, TaskInput } from '@/lib';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import ModalController from '@/controllers/ModalController';
-import { ArtificialIntelligence04Icon } from 'hugeicons-react';
+import {
+  ArrowLeft01Icon,
+  ArrowLeft02Icon,
+  ArtificialIntelligence04Icon,
+} from 'hugeicons-react';
 import { useProjectContext } from '@/providers/projectProvider';
 
 interface InputTaskModalProps {
   task?: Task;
   status?: StatusType;
+  onRequestClose?: () => void;
 }
 
 enum InputType {
@@ -29,15 +34,18 @@ enum LoadingType {
 export default function InputTaskModal({
   task,
   status,
+  onRequestClose,
 }: InputTaskModalProps): JSX.Element {
   const { createTask } = useProjectContext();
   const [isLoading, setIsLoading] = useState<LoadingType | null>(null);
   const [suggestedUser, setSuggestedUser] = useState<User | null>(null);
   const [input, setInput] = useState<TaskInput>({
-    title: '',
-    description: '',
-    assigneeId: '',
-    status: status ?? TASK_STATUS.ToDo,
+    title: task?.title || '',
+    description: task?.description || '',
+    assigneeId: task?.assigneeId || '',
+    status: task?.status
+      ? TASK_STATUS[task.status]
+      : status || TASK_STATUS.ToDo,
   });
 
   const validInput = useMemo(() => {
@@ -67,6 +75,13 @@ export default function InputTaskModal({
     ModalController.close();
   };
 
+  const handleUpdateTask = async () => {
+    setIsLoading(LoadingType.CREATE);
+    await updateTask();
+    setIsLoading(null);
+    if (onRequestClose) onRequestClose();
+  };
+
   const chooseSuggestion = () => {
     if (!suggestedUser) return;
     handleInput(InputType.ASSIGNEE, suggestedUser.id);
@@ -90,13 +105,21 @@ export default function InputTaskModal({
   return (
     <div
       className={cn(
-        'bg-white grow flex max-w-[70%] flex-col text-start px-3 py-4 rounded-xl space-y-2'
+        'bg-white grow flex max-w-[60%] flex-col text-start px-3 py-4 rounded-xl space-y-2'
       )}
     >
       <div className="flex justify-between">
-        <Text.Headline className="text-black font-medium text-[15px]">
-          Create new Task
-        </Text.Headline>
+        <div className="space-y-2">
+          {isUpdate && (
+            <ArrowLeft02Icon
+              onClick={onRequestClose}
+              className="text-black cursor-pointer"
+            />
+          )}
+          <Text.Headline className="text-black font-medium text-[15px]">
+            {isUpdate ? 'Update new task' : 'Create new task'}
+          </Text.Headline>
+        </div>
         <StatusChip
           onSelect={(status) => setInput((prev) => ({ ...prev, status }))}
           className="hover:scale-[104%]"
@@ -104,8 +127,10 @@ export default function InputTaskModal({
         />
       </div>
 
+      <div className="divider" />
+
       {/* Title Part  */}
-      <Text.Body className="font-medium pt-4">Title</Text.Body>
+      <Text.Body className="font-medium">Title</Text.Body>
       <input
         onInput={({ currentTarget: { value } }) =>
           handleInput(InputType.TITLE, value)
@@ -127,8 +152,10 @@ export default function InputTaskModal({
         placeholder="Add as much detail as possible for the AI Suggestions to work properly"
       ></textarea>
 
+      <div className="divider" />
+
       {/* Assignee Part */}
-      <Text.Body className="font-medium pt-4">Assign</Text.Body>
+      <Text.Body className="font-medium">Assign</Text.Body>
       <div className="flex justify-between space-x-2">
         <select
           value={input.assigneeId}
@@ -184,14 +211,16 @@ export default function InputTaskModal({
       <div className="divider" />
 
       <button
-        onClick={handleAddTask}
+        onClick={isUpdate ? handleAddTask : handleUpdateTask}
         disabled={!validInput || isLoading === LoadingType.CREATE}
         className="btn btn-primary max-h-12"
       >
         {isLoading ? (
           <span className="loading text-white"></span>
         ) : (
-          <Text.Body className="text-white">Create</Text.Body>
+          <Text.Subtitle className="text-white">
+            {isUpdate ? 'Update' : 'Create'}
+          </Text.Subtitle>
         )}
       </button>
     </div>

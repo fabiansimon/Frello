@@ -100,6 +100,29 @@ const appRouter = t.router({
       }
     }),
 
+  deleteTask: t.procedure
+    .input(
+      z.object({
+        taskId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const { taskId } = input;
+
+        await prisma.task.delete({
+          where: {
+            id: taskId,
+          },
+        });
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw new Error('Error creating task');
+      }
+    }),
+
   updateTask: t.procedure
     .input(
       z.object({
@@ -121,6 +144,7 @@ const appRouter = t.router({
 
       return task;
     }),
+
   createUser: t.procedure
     .input(
       z.object({

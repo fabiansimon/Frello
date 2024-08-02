@@ -40,3 +40,9 @@ export interface TaskInput {
   status: StatusType;
   assigneeId: string;
 }
+
+export interface Comment {
+  text: string;
+  createdAt: Date;
+  author: string;
+}

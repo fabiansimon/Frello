@@ -16,6 +16,7 @@ import {
 import { route, ROUTES } from './constants/routes';
 import LandingPage from './pages/LandingPage';
 import ProjectPage from './pages/ProjectPage';
+import Alert from './components/Alert';
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <RouteContainer />
               <Modal />
               <Toast />
+              <Alert />
             </ProjectProvider>
           </UserProvider>
         </Router>

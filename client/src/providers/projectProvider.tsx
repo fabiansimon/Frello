@@ -15,9 +15,14 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 
-interface UpdateTaskStatusProps {
+interface UpdateTaskProps {
   taskId: string;
-  status: StatusType;
+  updates: Partial<{
+    title: string;
+    description: string;
+    assigneeId: string | null;
+    status: TaskStatus;
+  }>;
 }
 
 interface ProjectContextType {
@@ -25,12 +30,10 @@ interface ProjectContextType {
   tasks: Task[];
   isLoading: boolean;
   load: (projectId: string) => Promise<void>;
-  updateTaskStatus: ({
-    taskId,
-    status,
-  }: UpdateTaskStatusProps) => Promise<void>;
-  createProject: (input: ProjectInput) => Promise<void>;
+  updateTask: ({ taskId, updates }: UpdateTaskProps) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
   createTask: (input: TaskInput) => Promise<void>;
+  createProject: (input: ProjectInput) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -51,6 +54,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   // Mutations
   const _createProject = trpc.createProject.useMutation();
   const _createTask = trpc.createTask.useMutation();
+  const _deleteTask = trpc.deleteTask.useMutation();
   const _updateTask = trpc.updateTask.useMutation();
 
   useEffect(() => {
@@ -69,27 +73,23 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const updateTaskStatus = useCallback(
-    async ({ taskId, status }: UpdateTaskStatusProps) => {
+  const updateTask = useCallback(
+    async ({ taskId, updates }: UpdateTaskProps) => {
       try {
         await _updateTask.mutateAsync({
           id: taskId,
-          status: TASK_STATUS[status.id].id as TaskStatus,
+          ...updates,
         });
         setTasks((prev) =>
-          prev.map((task) => {
-            if (task.id === taskId) {
-              return {
-                ...task,
-                status: TASK_STATUS[status.id].id as TaskStatus,
-              };
-            }
-            return task;
-          })
+          prev.map((task) =>
+            task.id === taskId ? { ...task, ...updates } : task
+          )
         );
       } catch (error) {
         console.error(error);
-        ToastController.showErrorToast({ description: error.message });
+        ToastController.showErrorToast({
+          description: (error as Error).message,
+        });
       }
     },
     []
@@ -104,6 +104,16 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
       });
       setProject(_project);
       navigation(route(ROUTES.project, _project.id));
+    } catch (error) {
+      console.error(error);
+      ToastController.showErrorToast({ description: error.message });
+    }
+  }, []);
+
+  const deleteTask = useCallback(async (taskId: string) => {
+    try {
+      await _deleteTask.mutateAsync({ taskId });
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
     } catch (error) {
       console.error(error);
       ToastController.showErrorToast({ description: error.message });
@@ -135,8 +145,9 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     project,
     tasks,
     isLoading,
-    updateTaskStatus,
+    updateTask,
     createProject,
+    deleteTask,
     createTask,
     load,
   };
