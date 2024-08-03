@@ -8,6 +8,8 @@ import { useEffect } from 'react';
 import ToastController from '@/controllers/ToastController';
 import { useNavigate } from 'react-router-dom';
 import { route, ROUTES } from '@/constants/routes';
+import { useUserContext } from '@/providers/userProvider';
+import AuthModal from '@/components/AuthModal';
 
 interface ProjectTileProps {
   onClick: () => void;
@@ -15,13 +17,21 @@ interface ProjectTileProps {
 }
 
 export default function LandingPage() {
+  const { isAuth } = useUserContext();
   const navigation = useNavigate();
 
   const {
     data: projects,
     error,
     isLoading,
-  } = trpc.fetchUserProjects.useQuery();
+  } = trpc.fetchUserProjects.useQuery(undefined, {
+    enabled: isAuth,
+  });
+
+  useEffect(() => {
+    if (!isAuth) return ModalController.show(<AuthModal />, false);
+    ModalController.close();
+  }, [isAuth]);
 
   useEffect(() => {
     if (error) ToastController.showErrorToast({ description: error.message });
@@ -47,6 +57,12 @@ export default function LandingPage() {
           <Text.Headline className="text-black font-medium text-[15px]">
             Choose Project
           </Text.Headline>
+
+          {projects.length === 0 && (
+            <Text.Body className="text-black/60">
+              No projects added yet
+            </Text.Body>
+          )}
 
           {projects.map((project) => (
             <ProjectTile

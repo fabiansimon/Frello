@@ -90,7 +90,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
         {title}
       </Text.Headline>
       <Text.Body className="text-black/60">{description}</Text.Body>
-      <div className="divider" />
+      {/* <div className="divider" />
       <Text.Body>Comments</Text.Body>
       <CommentsContainer
         className="max-h-52 overflow-y-auto"
@@ -102,7 +102,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
         type="text"
         className="input text-sm h-11 bg-white text-black input-bordered w-full"
         placeholder="Comment"
-      />
+      /> */}
       <div className="divider" />
       <div className="flex w-full space-x-2">
         <button

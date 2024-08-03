@@ -15,12 +15,15 @@ import useBreakingPoints from '@/hooks/useBreakingPoint';
 import { BreakPoint } from '@/lib';
 
 export interface ModalMethods {
-  show: (children: React.ReactNode) => void;
+  show: (children: React.ReactNode, closable: boolean) => void;
   close: () => void;
 }
 function Modal(): JSX.Element {
   const [isVisible, setIsVisible] = useState<boolean>(false);
-  const [content, setContent] = useState<React.ReactNode | null>(null);
+  const [content, setContent] = useState<{
+    render: React.ReactNode;
+    closable: boolean;
+  } | null>(null);
 
   const isSmall = useBreakingPoints(BreakPoint.SM);
 
@@ -38,8 +41,11 @@ function Modal(): JSX.Element {
   useImperativeHandle(
     ref,
     () => ({
-      show: (children: React.ReactNode) => {
-        setContent(children);
+      show: (children: React.ReactNode, closable: boolean) => {
+        setContent({
+          render: children,
+          closable,
+        });
         setIsVisible(true);
       },
       close: () => closeModal(),
@@ -50,6 +56,7 @@ function Modal(): JSX.Element {
   return (
     <motion.div
       onClick={(e) => {
+        if (!content?.closable) return;
         e.stopPropagation();
         closeModal();
       }}
@@ -82,7 +89,7 @@ function Modal(): JSX.Element {
           'rounded-tl-xl rounded-tr-xl flex justify-center min-w-full md:min-w-[90%] max-h-[90%]'
         )}
       >
-        {content && content}
+        {content && content.render}
       </motion.div>
     </motion.div>
   );

@@ -10,10 +10,12 @@ import {
   useState,
   ReactNode,
   useEffect,
+  useMemo,
 } from 'react';
 
 interface UserContextType {
   user: User | null;
+  isAuth: boolean;
   login: (input: AuthInput) => Promise<void>;
   logout: () => void;
 }
@@ -25,6 +27,8 @@ export default function UserProvider({ children }: { children: ReactNode }) {
 
   // Mutations
   const _createUser = trpc.createUser.useMutation();
+
+  const isAuth = useMemo(() => user !== null, [user]);
 
   const login = useCallback(async (input: AuthInput) => {
     const { email, expertise, role, name } = input;
@@ -52,7 +56,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
     if (user) setUser(user);
   }, []);
 
-  const value = { user, login, logout };
+  const value = { user, isAuth, login, logout };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
