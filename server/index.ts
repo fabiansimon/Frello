@@ -44,7 +44,7 @@ const appRouter = t.router({
           throw new Error('No project found with the provided project ID.');
 
         const { users, tasks, ...project } = data;
-        console.log(data);
+
         return {
           tasks,
           users,

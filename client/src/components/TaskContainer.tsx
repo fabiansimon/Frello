@@ -6,6 +6,7 @@ import TaskModal from './TaskModal';
 import StatusChip from './StatusChip';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import { StatusType } from '@/lib';
+import AssigneeContainer from './AssigneeContainer';
 
 interface TaskContainerProps {
   task: Task;
@@ -50,6 +51,10 @@ export default function TaskContainer({
         {title}
       </Text.Headline>
       <Text.Body className="text-black/60 max-w-[80%]">{description}</Text.Body>
+      <div className="divider" />
+
+      <AssigneeContainer assigneeId={assigneeId || ''} />
+
       {showStatus && (
         <StatusChip
           minimalistic

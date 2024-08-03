@@ -30,6 +30,12 @@ export default function UserProvider({ children }: { children: ReactNode }) {
 
   const isAuth = useMemo(() => user !== null, [user]);
 
+  const handleError = (error: unknown) => {
+    const errorMessage = (error as Error).message;
+    console.error(error);
+    ToastController.showErrorToast({ description: errorMessage });
+  };
+
   const login = useCallback(async (input: AuthInput) => {
     const { email, expertise, role, name } = input;
     try {
@@ -42,8 +48,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
       setUser(user);
       LocalStorage.saveUserData(user);
     } catch (error) {
-      console.error(error);
-      ToastController.showErrorToast({ description: error.message });
+      handleError(error);
     }
   }, []);
 

@@ -16,7 +16,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import { useUserContext } from './userProvider';
-import { REGEX } from '@/constants/regex';
 
 interface UpdateTaskProps {
   taskId: string;
@@ -41,7 +40,6 @@ interface ProjectContextType {
   addUser: (email: string) => Promise<void>;
   removeUser: (userId: string) => Promise<void>;
   createProject: (input: ProjectInput) => Promise<void>;
-  fetchTaskSuggestion: (taskId: string) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -68,7 +66,13 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   const _deleteTask = trpc.deleteTask.useMutation();
   const _updateTask = trpc.updateTask.useMutation();
   const _addUserToProject = trpc.addUserToProject.useMutation();
-  const _removeUserToProject = trpc.removeUserToProject.useMutation();
+  const _removeUserFromProject = trpc.removeUserFromProject.useMutation();
+
+  const handleError = (error: unknown) => {
+    const errorMessage = (error as Error).message;
+    console.error(error);
+    ToastController.showErrorToast({ description: errorMessage });
+  };
 
   useEffect(() => {
     if (error) ToastController.showErrorToast({ description: error.message });
@@ -109,10 +113,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
           )
         );
       } catch (error) {
-        console.error(error);
-        ToastController.showErrorToast({
-          description: (error as Error).message,
-        });
+        handleError(error);
       }
     },
     []
@@ -128,8 +129,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
       setProject(_project);
       navigation(route(ROUTES.project, _project.id));
     } catch (error) {
-      console.error(error);
-      ToastController.showErrorToast({ description: error.message });
+      handleError(error);
     }
   }, []);
 
@@ -147,8 +147,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
           return userMap;
         });
       } catch (error) {
-        console.error(error);
-        ToastController.showErrorToast({ description: error.message });
+        handleError(error);
       }
     },
     [project]
@@ -158,7 +157,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     async (userId: string) => {
       if (!project) return;
       try {
-        await _removeUserToProject.mutateAsync({
+        await _removeUserFromProject.mutateAsync({
           userId,
           projectId: project.id,
         });
@@ -168,8 +167,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
           return userMap;
         });
       } catch (error) {
-        console.error(error);
-        ToastController.showErrorToast({ description: error.message });
+        handleError(error);
       }
     },
     [project]
@@ -180,8 +178,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
       await _deleteTask.mutateAsync({ taskId });
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
     } catch (error) {
-      console.error(error);
-      ToastController.showErrorToast({ description: error.message });
+      handleError(error);
     }
   }, []);
 
@@ -199,8 +196,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
         });
         setTasks((prev) => prev.concat(_task));
       } catch (error) {
-        console.error(error);
-        ToastController.showErrorToast({ description: error.message });
+        handleError(error);
       }
     },
     [project]

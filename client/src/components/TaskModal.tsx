@@ -9,6 +9,7 @@ import { useMemo, useState } from 'react';
 import ModalController from '@/controllers/ModalController';
 import AlertController from '@/controllers/AlertController';
 import InputTaskModal from './InputTaskModal';
+import AssigneeContainer from './AssigneeContainer';
 
 interface CommentsContainerProps {
   comments: Comment[];
@@ -83,26 +84,30 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
   return (
     <div
       className={cn(
-        'bg-white relative cursor-pointer w-full md:max-w-screen-md text-start min-h-40 px-3 py-4 rounded-xl space-y-2'
+        'bg-white relative w-full md:max-w-screen-md text-start min-h-40 px-3 py-4 rounded-xl space-y-2 flex flex-col'
       )}
     >
       <Text.Headline className="text-black font-medium text-[15px]">
         {title}
       </Text.Headline>
-      <Text.Body className="text-black/60">{description}</Text.Body>
-      {/* <div className="divider" />
+      <Text.Body className="text-black/60 max-w-[70%]">{description}</Text.Body>
+      <AssigneeContainer
+        assigneeId={task?.assigneeId || ''}
+        className="mr-auto"
+      />
+      <div className="divider" />
       <Text.Body>Comments</Text.Body>
-      <CommentsContainer
+      {/* <CommentsContainer
         className="max-h-52 overflow-y-auto"
         comments={comments}
-      />
+      /> */}
       <input
         onInput={({ currentTarget: { value } }) => setComment(value)}
         value={comment}
         type="text"
         className="input text-sm h-11 bg-white text-black input-bordered w-full"
         placeholder="Comment"
-      /> */}
+      />
       <div className="divider" />
       <div className="flex w-full space-x-2">
         <button

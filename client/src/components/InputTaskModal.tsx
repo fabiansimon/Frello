@@ -9,6 +9,7 @@ import ModalController from '@/controllers/ModalController';
 import { ArrowLeft02Icon, ArtificialIntelligence04Icon } from 'hugeicons-react';
 import { useProjectContext } from '@/providers/projectProvider';
 import { trpc } from '@/trpc';
+import ToastController from '@/controllers/ToastController';
 
 interface InputTaskModalProps {
   task?: Task;
@@ -33,8 +34,7 @@ export default function InputTaskModal({
   status,
   onRequestClose,
 }: InputTaskModalProps): JSX.Element {
-  const { project, users, createTask, updateTask, fetchTaskSuggestion } =
-    useProjectContext();
+  const { project, users, createTask, updateTask } = useProjectContext();
   const [isLoading, setIsLoading] = useState<LoadingType | null>(null);
   const [suggestedUser, setSuggestedUser] = useState<User | null>(null);
   const [input, setInput] = useState<TaskInput>({
@@ -46,7 +46,8 @@ export default function InputTaskModal({
       : status || TASK_STATUS.ToDo,
   });
 
-  const { data, refetch } = trpc.fetchAISuggestion.useQuery(
+  // Query to fetch AI Suggestion
+  const { data, refetch, error } = trpc.fetchAISuggestion.useQuery(
     {
       projectId: project?.id || '',
       taskDescription: input.description,
@@ -60,9 +61,15 @@ export default function InputTaskModal({
     setSuggestedUser(users.get(userId) || null);
   }, [data]);
 
+  useEffect(() => {
+    if (error) ToastController.showErrorToast({ description: error.message });
+  }, [error]);
+
   const validInput = useMemo(() => {
     return input.title.trim() && input.description.trim();
   }, [input]);
+
+  const userArray = useMemo(() => Array.from(users.values()), [users]);
 
   const isUpdate = task !== undefined;
 
@@ -105,6 +112,9 @@ export default function InputTaskModal({
 
         case InputType.DESCRIPTION:
           return { ...prev, description: value ?? '' };
+
+        case InputType.ASSIGNEE:
+          return { ...prev, assigneeId: value ?? '' };
 
         default:
           return prev;
@@ -178,12 +188,12 @@ export default function InputTaskModal({
           >
             Pick an assignee
           </option>
-          {Array.from({ length: 4 }, () => 'hello').map((user, index) => (
+          {userArray.map(({ id, name }) => (
             <option
-              key={index}
-              value={index.toString()}
+              key={id}
+              value={id}
             >
-              {user}
+              {name}
             </option>
           ))}
         </select>
