@@ -43,12 +43,6 @@ export interface TaskInput {
   assigneeId: string;
 }
 
-export interface Comment {
-  text: string;
-  createdAt: Date;
-  author: string;
-}
-
 export interface AuthUser extends User {
   jwt: string;
 }

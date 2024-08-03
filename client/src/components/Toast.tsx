@@ -125,9 +125,11 @@ function Toast(): JSX.Element {
         <Text.Body className="text-white font-medium">
           {info?.title || defaultMessage}
         </Text.Body>
-        <Text.Subtitle className="text-white/70">
-          {info?.description}
-        </Text.Subtitle>
+        {info?.description && (
+          <Text.Subtitle className="text-white/70">
+            {info.description}
+          </Text.Subtitle>
+        )}
       </div>
     </motion.div>
   );
