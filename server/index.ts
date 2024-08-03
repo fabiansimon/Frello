@@ -1,9 +1,11 @@
 import { initTRPC } from '@trpc/server';
 import cors from 'cors';
+import { REGEX } from './constants/regex';
 import express from 'express';
 import { z } from 'zod';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { PrismaClient } from '@prisma/client';
+import { getOpenAISuggestion } from './controllers/openAIController';
 
 const prisma = new PrismaClient();
 
@@ -42,7 +44,7 @@ const appRouter = t.router({
           throw new Error('No project found with the provided project ID.');
 
         const { users, tasks, ...project } = data;
-
+        console.log(data);
         return {
           tasks,
           users,
@@ -51,6 +53,44 @@ const appRouter = t.router({
       } catch (error) {
         console.error(error);
         throw new Error('Error fetching tasks');
+      }
+    }),
+
+  fetchAISuggestion: t.procedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        taskDescription: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { projectId, taskDescription } = input;
+
+      try {
+        const data = await prisma.project.findFirst({
+          where: {
+            id: projectId,
+          },
+          include: {
+            users: true,
+          },
+        });
+        if (!data)
+          throw new Error('No project found with the provided project ID.');
+
+        const { users } = data;
+
+        const suggestion = await getOpenAISuggestion({
+          users,
+          taskDescription,
+        });
+        if (!suggestion || !REGEX.uuid.test(suggestion))
+          throw new Error('Invalid AI Suggestion. Please try again later.');
+
+        return { userId: suggestion };
+      } catch (error) {
+        console.error(error);
+        throw new Error('Error fetching AI suggestion');
       }
     }),
 

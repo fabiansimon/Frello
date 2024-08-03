@@ -41,6 +41,7 @@ interface ProjectContextType {
   addUser: (email: string) => Promise<void>;
   removeUser: (userId: string) => Promise<void>;
   createProject: (input: ProjectInput) => Promise<void>;
+  fetchTaskSuggestion: (taskId: string) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);

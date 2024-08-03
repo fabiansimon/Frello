@@ -18,7 +18,7 @@ export default function TaskContainer({
   className,
   showStatus,
 }: TaskContainerProps): JSX.Element {
-  const { description, title, status, createdAt } = task;
+  const { description, title, status, createdAt, assigneeId } = task;
   const { text: differenceText, unit } = getDateDifference(createdAt);
 
   return (

@@ -1,17 +1,14 @@
 import { cn } from '@/lib/utils';
 import Text from './Text';
 import { Task, User } from '@prisma/client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import StatusChip from './StatusChip';
 import { StatusType, TaskInput } from '@/lib';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import ModalController from '@/controllers/ModalController';
-import {
-  ArrowLeft01Icon,
-  ArrowLeft02Icon,
-  ArtificialIntelligence04Icon,
-} from 'hugeicons-react';
+import { ArrowLeft02Icon, ArtificialIntelligence04Icon } from 'hugeicons-react';
 import { useProjectContext } from '@/providers/projectProvider';
+import { trpc } from '@/trpc';
 
 interface InputTaskModalProps {
   task?: Task;
@@ -36,7 +33,8 @@ export default function InputTaskModal({
   status,
   onRequestClose,
 }: InputTaskModalProps): JSX.Element {
-  const { createTask, updateTask } = useProjectContext();
+  const { project, users, createTask, updateTask, fetchTaskSuggestion } =
+    useProjectContext();
   const [isLoading, setIsLoading] = useState<LoadingType | null>(null);
   const [suggestedUser, setSuggestedUser] = useState<User | null>(null);
   const [input, setInput] = useState<TaskInput>({
@@ -48,6 +46,20 @@ export default function InputTaskModal({
       : status || TASK_STATUS.ToDo,
   });
 
+  const { data, refetch } = trpc.fetchAISuggestion.useQuery(
+    {
+      projectId: project?.id || '',
+      taskDescription: input.description,
+    },
+    { enabled: false }
+  );
+
+  useEffect(() => {
+    if (!data) return;
+    const { userId } = data;
+    setSuggestedUser(users.get(userId) || null);
+  }, [data]);
+
   const validInput = useMemo(() => {
     return input.title.trim() && input.description.trim();
   }, [input]);
@@ -55,16 +67,9 @@ export default function InputTaskModal({
   const isUpdate = task !== undefined;
 
   const handleSuggestion = async () => {
+    setSuggestedUser(null);
     setIsLoading(LoadingType.AI);
-    setSuggestedUser({
-      createdAt: new Date(),
-      email: 'fabian.simon98@gmail.com',
-      expertise: '',
-      id: '2',
-      name: 'Fabian Simon',
-      updatedAt: new Date(),
-      role: '',
-    });
+    await refetch();
     setIsLoading(null);
   };
 
@@ -187,11 +192,19 @@ export default function InputTaskModal({
           onClick={handleSuggestion}
           className="btn btn-primary max-h-12"
         >
-          <ArtificialIntelligence04Icon
-            size={18}
-            className="text-white"
-          />
-          <Text.Subtitle className="text-white">AI Suggestion</Text.Subtitle>
+          {isLoading === LoadingType.AI ? (
+            <span className="text-white loading" />
+          ) : (
+            <>
+              <ArtificialIntelligence04Icon
+                size={18}
+                className="text-white"
+              />
+              <Text.Subtitle className="text-white">
+                AI Suggestion
+              </Text.Subtitle>
+            </>
+          )}
         </button>
       </div>
 
@@ -203,7 +216,7 @@ export default function InputTaskModal({
               className="cursor-pointer"
               onClick={chooseSuggestion}
             >
-              {suggestedUser.email}
+              {suggestedUser.name}
             </strong>
           </Text.Body>
           <Text.Subtitle className="text-white mt-2">

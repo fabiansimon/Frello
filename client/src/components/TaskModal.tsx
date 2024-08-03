@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import Text from './Text';
-import { Task, TaskStatus } from '@prisma/client';
+import { TaskStatus } from '@prisma/client';
 import StatusChip from './StatusChip';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import { useProjectContext } from '@/providers/projectProvider';
