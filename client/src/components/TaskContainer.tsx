@@ -51,9 +51,13 @@ export default function TaskContainer({
         {title}
       </Text.Headline>
       <Text.Body className="text-black/60 max-w-[80%]">{description}</Text.Body>
-      <div className="divider" />
 
-      <AssigneeContainer assigneeId={assigneeId || ''} />
+      {!showStatus && (
+        <>
+          <div className="divider" />
+          <AssigneeContainer assigneeId={assigneeId || ''} />
+        </>
+      )}
 
       {showStatus && (
         <StatusChip

@@ -93,7 +93,7 @@ export default function InputTaskModal({
     setIsLoading(LoadingType.CREATE);
     await updateTask({
       taskId: task.id,
-      updates: { title, description, assigneeId },
+      updates: { title, description, assigneeId, status: status.id },
     });
     setIsLoading(null);
     if (onRequestClose) onRequestClose();
@@ -141,7 +141,9 @@ export default function InputTaskModal({
           </Text.Headline>
         </div>
         <StatusChip
-          onSelect={(status) => setInput((prev) => ({ ...prev, status }))}
+          onSelect={(status) =>
+            setInput((prev) => ({ ...prev, status: TASK_STATUS[status] }))
+          }
           className="hover:scale-[104%]"
           status={input.status}
         />

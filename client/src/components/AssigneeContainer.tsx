@@ -3,6 +3,7 @@ import { useProjectContext } from '@/providers/projectProvider';
 import { useMemo } from 'react';
 import Text from './Text';
 import { UserIcon } from 'hugeicons-react';
+import { useUserContext } from '@/providers/userProvider';
 
 interface AssigneeContainerProps {
   assigneeId: string;
@@ -12,9 +13,16 @@ export default function AssigneeContainer({
   assigneeId,
   className,
 }: AssigneeContainerProps): JSX.Element {
+  const { user: self } = useUserContext();
   const { users } = useProjectContext();
   const user = useMemo(() => users.get(assigneeId), [assigneeId]);
 
+  const string = useMemo(() => {
+    if (!user) return 'Not assigned';
+    const name = user.id === self?.id ? 'You' : user.name;
+
+    return `Assigned to ${name}`;
+  }, [user, self]);
   return (
     <div
       className={cn(
@@ -22,9 +30,7 @@ export default function AssigneeContainer({
         className
       )}
     >
-      <Text.Subtitle>
-        {user?.name ? `Assigned to ${user?.name}` : 'Not assigned'}
-      </Text.Subtitle>
+      <Text.Subtitle>{string}</Text.Subtitle>
       <UserIcon
         fill="black"
         size={16}

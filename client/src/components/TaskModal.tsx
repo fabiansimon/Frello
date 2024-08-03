@@ -63,10 +63,10 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     ModalController.close();
   };
 
-  const handleStatusUpdate = async (status: StatusType) => {
+  const handleStatusUpdate = async (status: TaskStatus) => {
     setIsLoading(true);
     await updateTask({
-      status: TASK_STATUS[status.id].id as TaskStatus,
+      updates: { status },
       taskId,
     });
     setIsLoading(false);
@@ -127,7 +127,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
         isLoading={isLoading}
         onSelect={handleStatusUpdate}
         className="absolute right-4 top-1"
-        status={TASK_STATUS[task.status]}
+        status={task?.status ? TASK_STATUS[task.status] : TASK_STATUS.ToDo}
       />
     </div>
   );

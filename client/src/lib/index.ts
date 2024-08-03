@@ -1,4 +1,4 @@
-import { Task, User } from '@prisma/client';
+import { Task, User, TaskStatus } from '@prisma/client';
 
 export enum BreakPoint {
   SM,
@@ -9,7 +9,7 @@ export enum BreakPoint {
 }
 
 export interface StatusType {
-  id: string;
+  id: TaskStatus;
   color: string;
   title: string;
 }

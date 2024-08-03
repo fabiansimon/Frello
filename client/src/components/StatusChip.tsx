@@ -1,4 +1,5 @@
 import { StatusType } from '@/lib';
+import { TaskStatus } from '@prisma/client';
 import { cn } from '@/lib/utils';
 import Text from './Text';
 import { useMemo, useState } from 'react';
@@ -17,7 +18,7 @@ interface StatusChipProps {
   className?: string;
   isLoading?: boolean;
   minimalistic?: boolean;
-  onSelect?: (type: StatusType) => void;
+  onSelect?: (type: TaskStatus) => void;
 }
 export default function StatusChip({
   isLoading = false,
@@ -38,7 +39,7 @@ export default function StatusChip({
     setIsExpanded((prev) => !prev);
   };
 
-  const handleSelection = (type: StatusType) => {
+  const handleSelection = (type: TaskStatus) => {
     if (onSelect) onSelect(type);
     handleExpand();
   };
@@ -62,7 +63,7 @@ export default function StatusChip({
           {restStatuses.map((s) => (
             <Chip
               className="opacity-50 hover:opacity-100"
-              onClick={() => handleSelection(s)}
+              onClick={() => handleSelection(s.id)}
               key={s.id}
               status={s}
             />
