@@ -83,7 +83,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
   return (
     <div
       className={cn(
-        'bg-white relative cursor-pointer w-full md:max-w-[60%] text-start min-h-40 px-3 py-4 rounded-xl space-y-2'
+        'bg-white relative cursor-pointer w-full md:max-w-screen-md text-start min-h-40 px-3 py-4 rounded-xl space-y-2'
       )}
     >
       <Text.Headline className="text-black font-medium text-[15px]">

@@ -1,9 +1,9 @@
 import { route, ROUTES } from '@/constants/routes';
 import ToastController from '@/controllers/ToastController';
-import { ProjectInput, StatusType, TaskInput } from '@/lib';
+import { ProjectInput, TaskInput } from '@/lib';
 import { TaskStatus } from '@prisma/client';
 import { trpc } from '@/trpc';
-import { Project, Task } from '@prisma/client';
+import { Project, Task, User } from '@prisma/client';
 import {
   createContext,
   useContext,
@@ -16,6 +16,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import { useUserContext } from './userProvider';
+import { REGEX } from '@/constants/regex';
 
 interface UpdateTaskProps {
   taskId: string;
@@ -30,12 +31,15 @@ interface UpdateTaskProps {
 interface ProjectContextType {
   project: Project | null;
   tasks: Task[];
+  users: Map<string, User>;
   personalTasks: Task[];
   isLoading: boolean;
   load: (projectId: string) => Promise<void>;
   updateTask: ({ taskId, updates }: UpdateTaskProps) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   createTask: (input: TaskInput) => Promise<void>;
+  addUser: (email: string) => Promise<void>;
+  removeUser: (userId: string) => Promise<void>;
   createProject: (input: ProjectInput) => Promise<void>;
 }
 
@@ -47,6 +51,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<Map<string, User>>(new Map());
 
   const navigation = useNavigate();
 
@@ -61,6 +66,8 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   const _createTask = trpc.createTask.useMutation();
   const _deleteTask = trpc.deleteTask.useMutation();
   const _updateTask = trpc.updateTask.useMutation();
+  const _addUserToProject = trpc.addUserToProject.useMutation();
+  const _removeUserToProject = trpc.removeUserToProject.useMutation();
 
   useEffect(() => {
     if (error) ToastController.showErrorToast({ description: error.message });
@@ -68,9 +75,14 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!data) return;
-    const { tasks, project } = data;
+    const { tasks, project, users } = data;
     setProject(project);
     setTasks(tasks);
+    setUsers(() => {
+      const userMap = new Map<string, User>();
+      users.forEach((user) => userMap.set(user.id, user));
+      return userMap;
+    });
   }, [data]);
 
   const personalTasks = useMemo(
@@ -120,6 +132,48 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const addUser = useCallback(
+    async (email: string) => {
+      if (!project) return;
+      try {
+        const user = await _addUserToProject.mutateAsync({
+          email,
+          projectId: project.id,
+        });
+        setUsers((prev) => {
+          const userMap = new Map(prev);
+          userMap.set(user.id, user);
+          return userMap;
+        });
+      } catch (error) {
+        console.error(error);
+        ToastController.showErrorToast({ description: error.message });
+      }
+    },
+    [project]
+  );
+
+  const removeUser = useCallback(
+    async (userId: string) => {
+      if (!project) return;
+      try {
+        await _removeUserToProject.mutateAsync({
+          userId,
+          projectId: project.id,
+        });
+        setUsers((prev) => {
+          const userMap = new Map(prev);
+          userMap.delete(userId);
+          return userMap;
+        });
+      } catch (error) {
+        console.error(error);
+        ToastController.showErrorToast({ description: error.message });
+      }
+    },
+    [project]
+  );
+
   const deleteTask = useCallback(async (taskId: string) => {
     try {
       await _deleteTask.mutateAsync({ taskId });
@@ -154,10 +208,13 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   const value = {
     project,
     tasks,
+    users,
     personalTasks,
     isLoading,
     updateTask,
     createProject,
+    addUser,
+    removeUser,
     deleteTask,
     createTask,
     load,

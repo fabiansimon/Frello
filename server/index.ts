@@ -29,20 +29,23 @@ const appRouter = t.router({
     .query(async ({ input }) => {
       const { projectId } = input;
       try {
-        const tasks = await prisma.task.findMany({
-          where: {
-            projectId,
-          },
-        });
-
-        const project = await prisma.project.findFirst({
+        const data = await prisma.project.findFirst({
           where: {
             id: projectId,
           },
+          include: {
+            tasks: true,
+            users: true,
+          },
         });
+        if (!data)
+          throw new Error('No project found with the provided project ID.');
+
+        const { users, tasks, ...project } = data;
 
         return {
           tasks,
+          users,
           project,
         };
       } catch (error) {
@@ -60,6 +63,7 @@ const appRouter = t.router({
     )
     .mutation(async ({ input }) => {
       const { title, description } = input;
+
       try {
         const project = await prisma.project.create({
           data: {
@@ -76,6 +80,74 @@ const appRouter = t.router({
       } catch (error) {
         console.error(error);
         throw new Error('Error creating project');
+      }
+    }),
+
+  addUserToProject: t.procedure
+    .input(z.object({ email: z.string().email(), projectId: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const { email, projectId } = input;
+
+        const user = await prisma.user.findFirst({ where: { email } });
+        if (!user) throw new Error('No user found with the provided email.');
+
+        const project = await prisma.project.findFirst({
+          where: { id: projectId },
+        });
+        if (!project)
+          throw new Error('No project found with the provided project ID.');
+
+        const res = await prisma.project.update({
+          where: { id: projectId },
+          data: {
+            users: {
+              connect: { id: user.id },
+            },
+          },
+          include: {
+            users: true,
+          },
+        });
+
+        return user;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    }),
+
+  removeUserToProject: t.procedure
+    .input(z.object({ userId: z.string(), projectId: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const { userId, projectId } = input;
+
+        const user = await prisma.user.findFirst({ where: { id: userId } });
+        if (!user) throw new Error('No user found with the provided ID.');
+
+        const project = await prisma.project.findFirst({
+          where: { id: projectId },
+        });
+        if (!project)
+          throw new Error('No project found with the provided project ID.');
+
+        await prisma.project.update({
+          where: { id: projectId },
+          data: {
+            users: {
+              disconnect: { id: userId },
+            },
+          },
+          include: {
+            users: true,
+          },
+        });
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     }),
 

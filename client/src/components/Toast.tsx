@@ -121,10 +121,14 @@ function Toast(): JSX.Element {
       )}
     >
       {icon}
-      <Text.Body className="text-white font-medium">
-        {info?.title || defaultMessage}
-      </Text.Body>
-      <Text.Subtitle className="text-white">{info?.description}</Text.Subtitle>
+      <div className="flex flex-col items-start space-y-1 -mt-1">
+        <Text.Body className="text-white font-medium">
+          {info?.title || defaultMessage}
+        </Text.Body>
+        <Text.Subtitle className="text-white/70">
+          {info?.description}
+        </Text.Subtitle>
+      </div>
     </motion.div>
   );
 }

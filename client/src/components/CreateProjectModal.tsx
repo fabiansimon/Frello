@@ -47,7 +47,7 @@ export default function CreateProjectModal(): JSX.Element {
   return (
     <div
       className={
-        'bg-white grow shadow-md shadow-black/5 flex max-w-[70%] border border-black/5 flex-col text-start px-3 py-4 rounded-xl space-y-2 m-auto'
+        'bg-white grow shadow-md shadow-black/5 md:max-w-screen-md flex max-w-[70%] border border-black/5 flex-col text-start px-3 py-4 rounded-xl space-y-2 m-auto'
       }
     >
       <div className="flex justify-between">

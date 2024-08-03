@@ -110,7 +110,7 @@ export default function InputTaskModal({
   return (
     <div
       className={cn(
-        'bg-white grow flex max-w-[60%] flex-col text-start px-3 py-4 rounded-xl space-y-2'
+        'bg-white grow flex md:max-w-screen-md flex-col text-start px-3 py-4 rounded-xl space-y-2'
       )}
     >
       <div className="flex justify-between">

@@ -41,7 +41,7 @@ export default function LandingPage() {
       {projects && (
         <div
           className={
-            'bg-white grow shadow-md shadow-black/5 flex max-w-[70%] border border-black/5 flex-col text-start px-3 py-4 rounded-xl space-y-2 m-auto'
+            'bg-white grow shadow-md md:max-w-screen-md shadow-black/5 flex max-w-[70%] border border-black/5 flex-col text-start px-3 py-4 rounded-xl space-y-2 m-auto'
           }
         >
           <Text.Headline className="text-black font-medium text-[15px]">
