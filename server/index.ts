@@ -10,14 +10,19 @@ import {
   fetchProject,
   fetchUserProjects,
   removeUserFromProject,
-} from './controllers/projectsController';
+} from './controllers/projectController';
 import {
   createTask,
   deleteTask,
   updateTask,
 } from './controllers/taskController';
+import {
+  createComment,
+  removeComment,
+  fetchComments,
+} from './controllers/commentController';
 import { loginUser, registerUser } from './controllers/userController';
-import { Context, router, UserPayload } from './trpc';
+import { Context, router } from './trpc';
 
 export const prisma = new PrismaClient();
 
@@ -33,6 +38,9 @@ const appRouter = router({
   updateTask,
   registerUser,
   loginUser,
+  fetchComments,
+  createComment,
+  removeComment,
 });
 
 const app = express();

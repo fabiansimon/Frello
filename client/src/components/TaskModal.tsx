@@ -4,7 +4,7 @@ import { TaskStatus } from '@prisma/client';
 import StatusChip from './StatusChip';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import { useProjectContext } from '@/providers/projectProvider';
-import { Comment, StatusType } from '@/lib';
+import { Comment } from '@/lib';
 import { useMemo, useState } from 'react';
 import ModalController from '@/controllers/ModalController';
 import AlertController from '@/controllers/AlertController';
