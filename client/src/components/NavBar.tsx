@@ -23,7 +23,7 @@ export default function Navbar({
   };
 
   const handleCreate = () => {
-    if (!project) navigation(route(ROUTES.home));
+    navigation(route(ROUTES.home));
   };
 
   return (

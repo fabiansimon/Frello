@@ -3,15 +3,20 @@ import { Task } from '@prisma/client';
 import Text from './Text';
 import ModalController from '@/controllers/ModalController';
 import TaskModal from './TaskModal';
+import StatusChip from './StatusChip';
+import { TASK_STATUS } from '@/constants/TaskStatus';
+import { StatusType } from '@/lib';
 
 interface TaskContainerProps {
   task: Task;
+  showStatus?: boolean;
   className?: string;
 }
 
 export default function TaskContainer({
   task,
   className,
+  showStatus,
 }: TaskContainerProps): JSX.Element {
   const { description, title, status, createdAt } = task;
   const { text: differenceText, unit } = getDateDifference(createdAt);
@@ -44,7 +49,14 @@ export default function TaskContainer({
       <Text.Headline className="text-black pt-1 font-medium text-[15px]">
         {title}
       </Text.Headline>
-      <Text.Body className="text-black/60">{description}</Text.Body>
+      <Text.Body className="text-black/60 max-w-[80%]">{description}</Text.Body>
+      {showStatus && (
+        <StatusChip
+          minimalistic
+          status={TASK_STATUS[status] as StatusType}
+          className="min-w-8 max-w-8 absolute bottom-2 right-2"
+        />
+      )}
     </div>
   );
 }

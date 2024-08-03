@@ -28,6 +28,7 @@ export const TASK_STATUS: Record<string, StatusType> = {
     title: 'Declined',
   },
 };
+
 export function FILTER_BY_STATUS(type: string) {
   return (task: Task) => task.status === type;
 }

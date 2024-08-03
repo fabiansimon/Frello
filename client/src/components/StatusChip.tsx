@@ -16,6 +16,7 @@ interface StatusChipProps {
   status: StatusType;
   className?: string;
   isLoading?: boolean;
+  minimalistic?: boolean;
   onSelect?: (type: StatusType) => void;
 }
 export default function StatusChip({
@@ -23,6 +24,7 @@ export default function StatusChip({
   status,
   className,
   onSelect,
+  minimalistic,
 }: StatusChipProps): JSX.Element {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
@@ -44,6 +46,7 @@ export default function StatusChip({
   return (
     <div className={cn('min-w-28', className)}>
       <Chip
+        minimalistic={minimalistic}
         isLoading={isLoading}
         onClick={handleExpand}
         status={status}
@@ -74,6 +77,7 @@ function Chip({
   status,
   isLoading,
   className,
+  minimalistic,
   onClick,
 }: StatusChipProps & { onClick: () => void }): JSX.Element {
   const { title, color } = status;
@@ -109,9 +113,11 @@ function Chip({
       {!isLoading && (
         <div className="flex space-x-2 items-center justify-between w-full">
           {icon}
-          <Text.Subtitle className="text-white font-medium">
-            {title}
-          </Text.Subtitle>
+          {!minimalistic && (
+            <Text.Subtitle className="text-white font-medium">
+              {title}
+            </Text.Subtitle>
+          )}
         </div>
       )}
     </div>

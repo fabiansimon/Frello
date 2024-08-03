@@ -11,9 +11,11 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useMemo,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TASK_STATUS } from '@/constants/TaskStatus';
+import { useUserContext } from './userProvider';
 
 interface UpdateTaskProps {
   taskId: string;
@@ -28,6 +30,7 @@ interface UpdateTaskProps {
 interface ProjectContextType {
   project: Project | null;
   tasks: Task[];
+  personalTasks: Task[];
   isLoading: boolean;
   load: (projectId: string) => Promise<void>;
   updateTask: ({ taskId, updates }: UpdateTaskProps) => Promise<void>;
@@ -39,6 +42,8 @@ interface ProjectContextType {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export default function ProjectProvider({ children }: { children: ReactNode }) {
+  const { user } = useUserContext();
+
   const [projectId, setProjectId] = useState<string | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -67,6 +72,11 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     setProject(project);
     setTasks(tasks);
   }, [data]);
+
+  const personalTasks = useMemo(
+    () => tasks.filter((task) => task.assigneeId === user?.id),
+    [tasks, user]
+  );
 
   const load = useCallback(
     async (projectId: string) => setProjectId(projectId),
@@ -144,6 +154,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   const value = {
     project,
     tasks,
+    personalTasks,
     isLoading,
     updateTask,
     createProject,

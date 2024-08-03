@@ -1,5 +1,6 @@
 import Navbar from '@/components/NavBar';
 import TaskColumn from '@/components/TaskColumn';
+import TaskOverview from '@/components/TaskOverview';
 import UserTaskSheet from '@/components/UserTasksSheet';
 import { FILTER_BY_STATUS, TASK_STATUS } from '@/constants/TaskStatus';
 import useBreakingPoints from '@/hooks/useBreakingPoint';
@@ -59,10 +60,10 @@ export default function ProjectPage() {
   }, [filteredTasks]);
 
   return (
-    <div className="fixed flex grow max-w-full flex-col min-h-full min-w-[100%] gap-4">
+    <div className="fixed flex grow max-w-full max-h-full flex-col min-h-[100%] min-w-[100%] gap-4">
       <Navbar />
       <div className="flex grow w-full justify-between">
-        <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 px-4 md:px-10">
+        <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 pr-[370px] pl-4 md:pl-10">
           {boardCols.map((data) => (
             <TaskColumn
               key={data.id}
@@ -70,10 +71,10 @@ export default function ProjectPage() {
             />
           ))}
         </div>
-        {!isSmall && (
-          <div className="max-w-80 rounded-xl w-full bg-green-400 mx-4 mb-6" />
-        )}
-        <UserTaskSheet />
+        {/* {isSmall && ( */}
+        <TaskOverview data={boardCols} />
+        {/* )} */}
+        {/* <UserTaskSheet /> */}
       </div>
     </div>
   );
