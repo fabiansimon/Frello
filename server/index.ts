@@ -10,6 +10,16 @@ const prisma = new PrismaClient();
 const t = initTRPC.create();
 
 const appRouter = t.router({
+  fetchUserProjects: t.procedure.query(async () => {
+    try {
+      const projects = await prisma.project.findMany();
+      return projects;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error fetching user projects');
+    }
+  }),
+
   fetchProject: t.procedure
     .input(
       z.object({
