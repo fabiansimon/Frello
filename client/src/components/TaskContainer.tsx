@@ -13,12 +13,12 @@ export default function TaskContainer({
   task,
   className,
 }: TaskContainerProps): JSX.Element {
-  const { description, title, status, created_at } = task;
-  const { text: differenceText, unit } = getDateDifference(created_at);
+  const { description, title, status, createdAt } = task;
+  const { text: differenceText, unit } = getDateDifference(createdAt);
 
   return (
     <div
-      onClick={() => ModalController.show(<TaskModal task={task} />)}
+      onClick={() => ModalController.show(<TaskModal taskId={task.id} />)}
       className={cn(
         'bg-white cursor-pointer text-start px-3 py-4 rounded-xl space-y-2 hover:scale-[102%] transition duration-100 ease-in-out transform',
         className
@@ -26,7 +26,7 @@ export default function TaskContainer({
     >
       <div className="border-b border-black/10 pb-2 flex justify-between items-center -mt-2">
         <Text.Subtitle className="text-black">
-          {getReadableDate(created_at, true)}
+          {getReadableDate(createdAt, true)}
         </Text.Subtitle>
         <div
           className={cn(

@@ -36,7 +36,7 @@ export default function InputTaskModal({
   status,
   onRequestClose,
 }: InputTaskModalProps): JSX.Element {
-  const { createTask } = useProjectContext();
+  const { createTask, updateTask } = useProjectContext();
   const [isLoading, setIsLoading] = useState<LoadingType | null>(null);
   const [suggestedUser, setSuggestedUser] = useState<User | null>(null);
   const [input, setInput] = useState<TaskInput>({
@@ -52,7 +52,7 @@ export default function InputTaskModal({
     return input.title.trim() && input.description.trim();
   }, [input]);
 
-  const isUpdate = !!task;
+  const isUpdate = task !== undefined;
 
   const handleSuggestion = async () => {
     setIsLoading(LoadingType.AI);
@@ -76,8 +76,13 @@ export default function InputTaskModal({
   };
 
   const handleUpdateTask = async () => {
+    if (!task) return;
+    const { title, description, assigneeId, status } = input;
     setIsLoading(LoadingType.CREATE);
-    await updateTask();
+    await updateTask({
+      taskId: task.id,
+      updates: { title, description, assigneeId },
+    });
     setIsLoading(null);
     if (onRequestClose) onRequestClose();
   };
@@ -211,7 +216,7 @@ export default function InputTaskModal({
       <div className="divider" />
 
       <button
-        onClick={isUpdate ? handleAddTask : handleUpdateTask}
+        onClick={isUpdate ? handleUpdateTask : handleAddTask}
         disabled={!validInput || isLoading === LoadingType.CREATE}
         className="btn btn-primary max-h-12"
       >

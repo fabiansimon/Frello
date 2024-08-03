@@ -5,7 +5,7 @@ import StatusChip from './StatusChip';
 import { TASK_STATUS } from '@/constants/TaskStatus';
 import { useProjectContext } from '@/providers/projectProvider';
 import { Comment, StatusType } from '@/lib';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import ModalController from '@/controllers/ModalController';
 import AlertController from '@/controllers/AlertController';
 import InputTaskModal from './InputTaskModal';
@@ -16,17 +16,19 @@ interface CommentsContainerProps {
 }
 
 interface TaskModalProps {
-  task: Task;
+  taskId: string;
 }
 
-export default function TaskModal({ task }: TaskModalProps): JSX.Element {
-  const { deleteTask } = useProjectContext();
+export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
+  const { deleteTask, tasks } = useProjectContext();
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
 
   const { updateTask } = useProjectContext();
-  const { title, assigneeId, description, id, projectId, status } = task;
+  const task = useMemo(() => tasks.find((t) => t.id === taskId), [tasks]);
+
+  const { title, description, status } = task!;
 
   const comments: Comment[] = [
     {
@@ -56,7 +58,7 @@ export default function TaskModal({ task }: TaskModalProps): JSX.Element {
   };
 
   const handleDelete = () => {
-    AlertController.show({ callback: async () => await deleteTask(id) });
+    AlertController.show({ callback: async () => await deleteTask(taskId) });
     ModalController.close();
   };
 
@@ -64,7 +66,7 @@ export default function TaskModal({ task }: TaskModalProps): JSX.Element {
     setIsLoading(true);
     await updateTask({
       status: TASK_STATUS[status.id].id as TaskStatus,
-      taskId: task.id,
+      taskId,
     });
     setIsLoading(false);
     ModalController.close();
