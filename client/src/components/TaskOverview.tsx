@@ -82,15 +82,15 @@ export default function TaskOverview({ data }: TaskOverviewProps) {
           </Text.Headline>
           <Text.Body className="text-black/60">Tasks assigned to you</Text.Body>
           <div className="space-y-3 mt-4 w-full h-full overflow-y-auto">
-            {[
-              ...personalTasks,
-              ...personalTasks,
-              ...personalTasks,
-              ...personalTasks,
-            ].map((task) => (
+            {personalTasks.length === 0 && (
+              <Text.Subtitle className="text-black/50">
+                No tasks assigned to you
+              </Text.Subtitle>
+            )}
+            {personalTasks.map((task) => (
               <TaskContainer
                 showStatus
-                className="border border-black/10"
+                className="border m-1 border-black/10"
                 task={task}
               />
             ))}

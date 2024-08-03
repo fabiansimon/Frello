@@ -10,6 +10,7 @@ import ModalController from '@/controllers/ModalController';
 import AlertController from '@/controllers/AlertController';
 import InputTaskModal from './InputTaskModal';
 import AssigneeContainer from './AssigneeContainer';
+import useKeyShortcut from '@/hooks/useKeyShortcut';
 
 interface CommentsContainerProps {
   comments: Comment[];
@@ -22,40 +23,45 @@ interface TaskModalProps {
 
 export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
   const { deleteTask, tasks } = useProjectContext();
+  const { updateTask } = useProjectContext();
+
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
 
-  const { updateTask } = useProjectContext();
   const task = useMemo(() => tasks.find((t) => t.id === taskId), [tasks]);
 
-  const { title, description, status } = task!;
+  const { title, description } = task!;
 
   const comments: Comment[] = [
-    {
-      text: 'Lorem ipusm bal sadjöaj eusje soe',
-      author: 'Elisabeth Altmutter',
-      createdAt: new Date(),
-    },
-    {
-      text: 'Lorem ipusm bal sadjöaj eusje soe',
-      author: 'Elisabeth Altmutter',
-      createdAt: new Date(),
-    },
-    {
-      text: 'Lorem ipusm bal sadjöaj eusje soe',
-      author: 'Elisabeth Altmutter',
-      createdAt: new Date(),
-    },
-    {
-      text: 'Lorem ipusm bal sadjöaj eusje soe',
-      author: 'Elisabeth Altmutter',
-      createdAt: new Date(),
-    },
+    // {
+    //   text: 'Lorem ipusm bal sadjöaj eusje soe',
+    //   author: 'Elisabeth Altmutter',
+    //   createdAt: new Date(),
+    // },
+    // {
+    //   text: 'Lorem ipusm bal sadjöaj eusje soe',
+    //   author: 'Elisabeth Altmutter',
+    //   createdAt: new Date(),
+    // },
+    // {
+    //   text: 'Lorem ipusm bal sadjöaj eusje soe',
+    //   author: 'Elisabeth Altmutter',
+    //   createdAt: new Date(),
+    // },
+    // {
+    //   text: 'Lorem ipusm bal sadjöaj eusje soe',
+    //   author: 'Elisabeth Altmutter',
+    //   createdAt: new Date(),
+    // },
   ];
 
   const handleEdit = () => {
     setIsEdit(true);
+  };
+
+  const sendMessage = () => {
+    console.log('hello');
   };
 
   const handleDelete = () => {
@@ -72,6 +78,8 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     setIsLoading(false);
     ModalController.close();
   };
+
+  useKeyShortcut({ hotkey: 'Enter', action: sendMessage });
 
   if (isEdit)
     return (
@@ -97,10 +105,10 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
       />
       <div className="divider" />
       <Text.Body>Comments</Text.Body>
-      {/* <CommentsContainer
+      <CommentsContainer
         className="max-h-52 overflow-y-auto"
         comments={comments}
-      /> */}
+      />
       <input
         onInput={({ currentTarget: { value } }) => setComment(value)}
         value={comment}
@@ -139,6 +147,11 @@ function CommentsContainer({
 }: CommentsContainerProps): JSX.Element {
   return (
     <div className={cn('bg-neutral-100 rounded-lg p-2 space-y-5', className)}>
+      {comments.length === 0 && (
+        <Text.Subtitle className="text-black/60 my-1 text-center">
+          No comments added yet.
+        </Text.Subtitle>
+      )}
       {comments.map(({ author, createdAt, text }) => (
         <div
           key={author}

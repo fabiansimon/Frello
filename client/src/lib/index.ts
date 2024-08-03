@@ -52,3 +52,12 @@ export interface Comment {
 export interface AuthUser extends User {
   jwt: string;
 }
+
+export enum OperationSystem {
+  WINDOWS,
+  MAC,
+  LINUX,
+  IOS,
+  ANDROID,
+  MISC,
+}

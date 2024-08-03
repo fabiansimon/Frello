@@ -8,6 +8,7 @@ import { useProjectContext } from '@/providers/projectProvider';
 import { useNavigate } from 'react-router-dom';
 import { route, ROUTES } from '@/constants/routes';
 import UserListModal from './UserListModal';
+import AlertController from '@/controllers/AlertController';
 
 export default function Navbar({
   className,
@@ -15,12 +16,19 @@ export default function Navbar({
   className?: string;
 }): JSX.Element {
   const { project, users } = useProjectContext();
-  const { user } = useUserContext();
+  const { user, logout } = useUserContext();
 
   const navigation = useNavigate();
 
-  const handleLogin = () => {
-    if (!user) return ModalController.show(<AuthModal />);
+  const handleAccount = () => {
+    AlertController.show({
+      title: 'Log out?',
+      description: 'Are you sure you want to log out?',
+      callback: () => {
+        logout();
+        navigation(route(ROUTES.home));
+      },
+    });
   };
 
   const handleCreate = () => {
@@ -60,7 +68,7 @@ export default function Navbar({
 
         {/* User */}
         <div
-          onClick={handleLogin}
+          onClick={handleAccount}
           className="border hover:bg-black/50 cursor-pointer h-8 px-4 border-white/20 rounded-md items-center space-x-2 flex"
         >
           <UserIcon size={16} />
