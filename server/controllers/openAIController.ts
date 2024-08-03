@@ -1,11 +1,15 @@
 import { User } from '@prisma/client';
 import OpenAI from 'openai';
+import { z } from 'zod';
+import { REGEX } from '../constants/regex';
+import { publicProcedure } from '../trpc';
+import { prisma } from '..';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAPI_KEY,
 });
 
-export async function getOpenAISuggestion({
+async function getOpenAISuggestion({
   users,
   taskDescription,
 }: {
@@ -40,3 +44,41 @@ function generateSuggestionPrompt({
   }, '');
   return `Take a task with following description: "${taskDescription}". Now take a look at all the possible employees to fulfill said task:\n ${userDescription}. Please pick what employee is most suitable for said taks and only answer with their ID.`;
 }
+
+export const fetchAISuggestion = publicProcedure
+  .input(
+    z.object({
+      projectId: z.string(),
+      taskDescription: z.string(),
+    })
+  )
+  .query(async ({ input }) => {
+    const { projectId, taskDescription } = input;
+
+    try {
+      const data = await prisma.project.findFirst({
+        where: {
+          id: projectId,
+        },
+        include: {
+          users: true,
+        },
+      });
+      if (!data)
+        throw new Error('No project found with the provided project ID.');
+
+      const { users } = data;
+
+      const suggestion = await getOpenAISuggestion({
+        users,
+        taskDescription,
+      });
+      if (!suggestion || !REGEX.uuid.test(suggestion))
+        throw new Error('Invalid AI Suggestion. Please try again later.');
+
+      return { userId: suggestion };
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error fetching AI suggestion');
+    }
+  });
