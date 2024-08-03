@@ -1,4 +1,4 @@
-import { Task } from '@prisma/client';
+import { Task, User } from '@prisma/client';
 
 export enum BreakPoint {
   SM,
@@ -14,7 +14,9 @@ export interface StatusType {
   title: string;
 }
 
-export type PopulatedStatusType = StatusType & { tasks: Task[] };
+export interface PopulatedStatusType extends StatusType {
+  tasks: Task[];
+}
 
 export enum ToastType {
   ERROR,
@@ -45,4 +47,8 @@ export interface Comment {
   text: string;
   createdAt: Date;
   author: string;
+}
+
+export interface AuthUser extends User {
+  jwt: string;
 }

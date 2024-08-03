@@ -1,14 +1,20 @@
 import { z } from 'zod';
 import { publicProcedure } from '../trpc';
+import { authUser } from '../utils/authHelper';
 import { prisma } from '..';
 
 export const fetchUserProjects = publicProcedure.query(async ({ ctx }) => {
   try {
-    const projects = await prisma.project.findMany();
+    const userId = authUser(ctx);
+
+    const projects = await prisma.project.findMany({
+      where: { users: { some: { id: userId } } },
+    });
+
     return projects;
   } catch (error) {
     console.error(error);
-    throw new Error('Error fetching user projects');
+    throw error;
   }
 });
 
@@ -18,9 +24,11 @@ export const fetchProject = publicProcedure
       projectId: z.string(),
     })
   )
-  .query(async ({ input }) => {
+  .query(async ({ input, ctx }) => {
     const { projectId } = input;
     try {
+      const userId = authUser(ctx);
+
       const data = await prisma.project.findFirst({
         where: {
           id: projectId,
@@ -30,10 +38,14 @@ export const fetchProject = publicProcedure
           users: true,
         },
       });
+
       if (!data)
         throw new Error('No project found with the provided project ID.');
 
       const { users, tasks, ...project } = data;
+
+      if (!users.some((u) => u.id === userId))
+        throw new Error('User is not part of the project.');
 
       return {
         tasks,
@@ -42,7 +54,7 @@ export const fetchProject = publicProcedure
       };
     } catch (error) {
       console.error(error);
-      throw new Error('Error fetching tasks');
+      throw error;
     }
   });
 
@@ -53,14 +65,21 @@ export const createProject = publicProcedure
       description: z.string(),
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     const { title, description } = input;
 
     try {
+      const userId = authUser(ctx);
+
       const project = await prisma.project.create({
         data: {
           title,
           description,
+          users: {
+            connect: {
+              id: userId,
+            },
+          },
         },
         include: {
           users: true,
@@ -71,7 +90,7 @@ export const createProject = publicProcedure
       return project;
     } catch (error) {
       console.error(error);
-      throw new Error('Error creating project');
+      throw error;
     }
   });
 

@@ -13,11 +13,11 @@ import {
 } from './controllers/projectsController';
 import {
   createTask,
-  createUser,
   deleteTask,
   updateTask,
 } from './controllers/taskController';
-import { router } from './trpc';
+import { loginUser, registerUser } from './controllers/userController';
+import { Context, router, UserPayload } from './trpc';
 
 export const prisma = new PrismaClient();
 
@@ -31,7 +31,8 @@ const appRouter = router({
   createTask,
   deleteTask,
   updateTask,
-  createUser,
+  registerUser,
+  loginUser,
 });
 
 const app = express();
@@ -42,20 +43,19 @@ app.use(
   '/trpc',
   trpcExpress.createExpressMiddleware({
     router: appRouter,
-    createContext: async ({ req }) => {
+    createContext: async ({ req }): Promise<Context> => {
       const authHeader = req.headers['authorization'];
 
       if (!authHeader) {
-        return { user: null };
+        return null;
       }
 
       const token = authHeader.split(' ')[1];
       try {
-        const decoded = verifyToken(token);
-        return { user: decoded };
+        return verifyToken(token) as Context;
       } catch (error) {
         console.error(error);
-        return { user: null };
+        return null;
       }
     },
   })

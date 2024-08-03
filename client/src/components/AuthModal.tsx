@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { AuthInput } from '@/lib';
 import { useUserContext } from '@/providers/userProvider';
 import ModalController from '@/controllers/ModalController';
+import { REGEX } from '@/constants/regex';
+import ToastController from '@/controllers/ToastController';
 
 enum InputType {
   NAME,
@@ -13,8 +15,9 @@ enum InputType {
 }
 
 export default function AuthModal(): JSX.Element {
-  const { login } = useUserContext();
+  const { register, login } = useUserContext();
 
+  const [isLogin, setIsLogin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [input, setInput] = useState<AuthInput>({
     email: '',
@@ -24,6 +27,7 @@ export default function AuthModal(): JSX.Element {
   });
 
   const validInput = useMemo(() => {
+    if (isLogin) return input.email.trim();
     return (
       input.email.trim() &&
       input.expertise.trim() &&
@@ -32,11 +36,20 @@ export default function AuthModal(): JSX.Element {
     );
   }, [input]);
 
-  const handleCreateUser = async () => {
+  const handleAuth = async () => {
+    if (!REGEX.email.test(input.email))
+      return ToastController.showErrorToast({
+        title: 'Invalid email',
+        description: 'Please make sure to add a valid email',
+      });
+
     setIsLoading(true);
-    await login(input);
+    if (isLogin) {
+      await login(input);
+    } else {
+      await register(input);
+    }
     setIsLoading(false);
-    ModalController.close();
   };
 
   const handleInput = (type: InputType, value?: string) => {
@@ -66,41 +79,41 @@ export default function AuthModal(): JSX.Element {
         'bg-white grow md:max-w-screen-md flex flex-col text-start px-3 py-4 rounded-xl space-y-2'
       )}
     >
-      <div className="flex justify-between">
-        <Text.Headline className="text-black font-medium text-[15px]">
-          Create new Account
-        </Text.Headline>
-      </div>
+      <Text.Headline className="text-black font-medium text-[15px]">
+        {isLogin ? 'Login in Account' : 'Create new Account'}
+      </Text.Headline>
 
-      {/* Title Part & Role Part */}
-      <div className="flex space-x-2">
-        <div className="grow">
-          <Text.Body className="font-medium pt-4">Name</Text.Body>
-          <input
-            onInput={({ currentTarget: { value } }) =>
-              handleInput(InputType.NAME, value)
-            }
-            type="text"
-            value={input.name}
-            className="input text-sm bg-white text-black input-bordered w-full"
-            placeholder="Fabian Simon"
-          />
+      {/* Name Part & Role Part */}
+      {!isLogin && (
+        <div className="flex space-x-2">
+          <div className="grow">
+            <Text.Body className="font-medium pt-4">Name</Text.Body>
+            <input
+              onInput={({ currentTarget: { value } }) =>
+                handleInput(InputType.NAME, value)
+              }
+              type="text"
+              value={input.name}
+              className="input text-sm bg-white text-black input-bordered w-full"
+              placeholder="Fabian Simon"
+            />
+          </div>
+          <div className="grow">
+            <Text.Body className="font-medium pt-4">Role</Text.Body>
+            <input
+              onInput={({ currentTarget: { value } }) =>
+                handleInput(InputType.ROLE, value)
+              }
+              type="text"
+              value={input.role}
+              className="input text-sm bg-white text-black input-bordered w-full"
+              placeholder="Full-Stack Developer"
+            />
+          </div>
         </div>
-        <div className="grow">
-          <Text.Body className="font-medium pt-4">Role</Text.Body>
-          <input
-            onInput={({ currentTarget: { value } }) =>
-              handleInput(InputType.ROLE, value)
-            }
-            type="text"
-            value={input.role}
-            className="input text-sm bg-white text-black input-bordered w-full"
-            placeholder="Full-Stack Developer"
-          />
-        </div>
-      </div>
+      )}
 
-      {/* Title Part  */}
+      {/* Email Part  */}
       <Text.Body className="font-medium pt-4">Email</Text.Body>
       <input
         onInput={({ currentTarget: { value } }) =>
@@ -113,29 +126,42 @@ export default function AuthModal(): JSX.Element {
       />
 
       {/* Expertise Part */}
-      <Text.Body className="font-medium pt-4">Expertise</Text.Body>
-      <textarea
-        value={input.expertise}
-        onInput={({ currentTarget: { value } }) =>
-          handleInput(InputType.EXPERTISE, value)
-        }
-        className="input text-sm bg-white text-black input-bordered w-full pt-2 h-20"
-        placeholder="Add as much detail as possible for the AI Suggestions to work properly"
-      ></textarea>
+      {!isLogin && (
+        <>
+          <Text.Body className="font-medium pt-4">Expertise</Text.Body>
+          <textarea
+            value={input.expertise}
+            onInput={({ currentTarget: { value } }) =>
+              handleInput(InputType.EXPERTISE, value)
+            }
+            className="input text-sm bg-white text-black input-bordered w-full pt-2 h-20"
+            placeholder="Add as much detail as possible for the AI Suggestions to work properly"
+          ></textarea>
+        </>
+      )}
 
       <div className="divider" />
 
       <button
-        onClick={handleCreateUser}
+        onClick={handleAuth}
         disabled={!validInput || isLoading}
         className="btn btn-primary max-h-12"
       >
         {isLoading ? (
           <span className="loading text-white"></span>
         ) : (
-          <Text.Body className="text-white">Create</Text.Body>
+          <Text.Body className="text-white">
+            {isLogin ? 'Login' : 'Create'}
+          </Text.Body>
         )}
       </button>
+
+      <Text.Body
+        onClick={() => setIsLogin((prev) => !prev)}
+        className="text-black/60 cursor-pointer underline mx-auto py-2"
+      >
+        {isLogin ? 'Register instead' : 'Login instead'}
+      </Text.Body>
     </div>
   );
 }

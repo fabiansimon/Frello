@@ -1,5 +1,5 @@
 import ToastController from '@/controllers/ToastController';
-import { AuthInput } from '@/lib';
+import { AuthInput, AuthUser } from '@/lib';
 import { LocalStorage } from '@/lib/localStorage';
 import { trpc } from '@/trpc';
 import { User } from '@prisma/client';
@@ -16,6 +16,7 @@ import {
 interface UserContextType {
   user: User | null;
   isAuth: boolean;
+  register: (input: AuthInput) => Promise<void>;
   login: (input: AuthInput) => Promise<void>;
   logout: () => void;
 }
@@ -23,10 +24,11 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export default function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   // Mutations
-  const _createUser = trpc.createUser.useMutation();
+  const _registerUser = trpc.registerUser.useMutation();
+  const _loginUser = trpc.loginUser.useMutation();
 
   const isAuth = useMemo(() => user !== null, [user]);
 
@@ -36,17 +38,30 @@ export default function UserProvider({ children }: { children: ReactNode }) {
     ToastController.showErrorToast({ description: errorMessage });
   };
 
-  const login = useCallback(async (input: AuthInput) => {
+  const register = useCallback(async (input: AuthInput) => {
     const { email, expertise, role, name } = input;
     try {
-      const user = await _createUser.mutateAsync({
+      const { user, token: jwt } = await _registerUser.mutateAsync({
         email,
         expertise,
         name,
         role,
       });
-      setUser(user);
-      LocalStorage.saveUserData(user);
+      const authUser = { ...user, jwt };
+      setUser(authUser);
+      LocalStorage.saveUserData(authUser);
+    } catch (error) {
+      handleError(error);
+    }
+  }, []);
+
+  const login = useCallback(async (input: AuthInput) => {
+    const { email } = input;
+    try {
+      const { user, token: jwt } = await _loginUser.mutateAsync({ email });
+      const authUser = { ...user, jwt };
+      setUser(authUser);
+      LocalStorage.saveUserData(authUser);
     } catch (error) {
       handleError(error);
     }
@@ -54,6 +69,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setUser(null);
+    LocalStorage.cleanUserData();
   }, []);
 
   useEffect(() => {
@@ -61,7 +77,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
     if (user) setUser(user);
   }, []);
 
-  const value = { user, isAuth, login, logout };
+  const value = { user, isAuth, register, login, logout };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }

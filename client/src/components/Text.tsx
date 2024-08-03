@@ -1,11 +1,11 @@
 import { cn } from '../lib/utils';
 
-interface TextProps {
+interface TextProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
 }
 
-export default function Text({ ...props }): JSX.Element {
+export default function Text(): JSX.Element {
   return <></>;
 }
 
