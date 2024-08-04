@@ -55,9 +55,21 @@ export default function TaskOverview({ data }: TaskOverviewProps) {
                 <Text.Body className="font-medium text-white">
                   {tasks.length}
                 </Text.Body>
-                <Text.Subtitle className="text-white text-[10px]">{`${title}`}</Text.Subtitle>
+                <Text.Subtitle className="text-white text-[10px]">
+                  {title}
+                </Text.Subtitle>
               </div>
             ))}
+            <div
+              className={cn(
+                'w-full h-12 rounded-lg justify-center flex-col flex bg-neutral-300/50 border border-black/10'
+              )}
+            >
+              <Text.Body className="font-medium">
+                {personalTasks.length}
+              </Text.Body>
+              <Text.Subtitle className="text-[10px]">{'You'}</Text.Subtitle>
+            </div>
           </div>
         </>
       )}

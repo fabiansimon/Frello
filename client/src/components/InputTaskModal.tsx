@@ -58,7 +58,11 @@ export default function InputTaskModal({
   useEffect(() => {
     if (!data) return;
     const { userId } = data;
-    setSuggestedUser(users.get(userId) || null);
+    const user = users.get(userId) || null;
+
+    if (!user) return;
+    setSuggestedUser(user);
+    handleInput(InputType.ASSIGNEE, user.id);
   }, [data]);
 
   useEffect(() => {
@@ -219,6 +223,13 @@ export default function InputTaskModal({
           )}
         </button>
       </div>
+
+      <Text.Subtitle
+        onClick={() => handleInput(InputType.ASSIGNEE)}
+        className="text-black/60 underline cursor-pointer"
+      >
+        Remove Assignee
+      </Text.Subtitle>
 
       {suggestedUser && (
         <div className="w-full bg-primary p-4 rounded-md mt-2">
