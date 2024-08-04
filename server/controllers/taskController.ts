@@ -78,6 +78,12 @@ export const updateTask = publicProcedure
       authUser(ctx);
 
       const { id, projectId, ...updates } = input;
+
+      const project = await prisma.project.findFirst({
+        where: { id: projectId },
+      });
+      if (!project) throw new Error('Project with that ID not found.');
+
       const task = await prisma.task.update({
         where: { id },
         data: updates,
