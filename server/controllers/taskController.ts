@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { publicProcedure } from '../trpc';
 import { prisma } from '..';
+import { authUser } from '../utils/authHelper';
 
 export const createTask = publicProcedure
   .input(
@@ -39,8 +40,10 @@ export const deleteTask = publicProcedure
       taskId: z.string(),
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     try {
+      authUser(ctx);
+
       const { taskId } = input;
 
       await prisma.task.delete({
@@ -78,33 +81,4 @@ export const updateTask = publicProcedure
 
       return task;
     } catch (error) {}
-  });
-
-export const createUser = publicProcedure
-  .input(
-    z.object({
-      name: z.string(),
-      role: z.string(),
-      email: z.string(),
-      expertise: z.string(),
-    })
-  )
-  .mutation(async ({ input }) => {
-    const { name, email, expertise, role } = input;
-    try {
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          expertise,
-          role,
-          updatedAt: new Date(),
-        },
-      });
-
-      return user;
-    } catch (error) {
-      console.log(error);
-      throw new Error('Error when creating User');
-    }
   });

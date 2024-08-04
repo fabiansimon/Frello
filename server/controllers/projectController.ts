@@ -73,6 +73,7 @@ export const createProject = publicProcedure
 
       const project = await prisma.project.create({
         data: {
+          adminId: userId,
           title,
           description,
           users: {
@@ -96,8 +97,10 @@ export const createProject = publicProcedure
 
 export const addUserToProject = publicProcedure
   .input(z.object({ email: z.string().email(), projectId: z.string() }))
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     try {
+      const userId = authUser(ctx);
+
       const { email, projectId } = input;
 
       const user = await prisma.user.findFirst({ where: { email } });
@@ -108,6 +111,9 @@ export const addUserToProject = publicProcedure
       });
       if (!project)
         throw new Error('No project found with the provided project ID.');
+
+      if (project.adminId !== userId)
+        throw new Error('Only the admin can add users to the project.');
 
       await prisma.project.update({
         where: { id: projectId },
@@ -130,11 +136,13 @@ export const addUserToProject = publicProcedure
 
 export const removeUserFromProject = publicProcedure
   .input(z.object({ userId: z.string(), projectId: z.string() }))
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     try {
-      const { userId, projectId } = input;
+      const userId = authUser(ctx);
 
-      const user = await prisma.user.findFirst({ where: { id: userId } });
+      const { userId: removeId, projectId } = input;
+
+      const user = await prisma.user.findFirst({ where: { id: removeId } });
       if (!user) throw new Error('No user found with the provided ID.');
 
       const project = await prisma.project.findFirst({
@@ -143,11 +151,14 @@ export const removeUserFromProject = publicProcedure
       if (!project)
         throw new Error('No project found with the provided project ID.');
 
+      if (project.adminId !== userId)
+        throw new Error('Only the admin can remove users from the project.');
+
       await prisma.project.update({
         where: { id: projectId },
         data: {
           users: {
-            disconnect: { id: userId },
+            disconnect: { id: removeId },
           },
         },
         include: {

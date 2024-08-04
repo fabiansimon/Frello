@@ -4,11 +4,13 @@ import { useMemo, useState } from 'react';
 import { REGEX } from '@/constants/regex';
 import ToastController from '@/controllers/ToastController';
 import AlertController from '@/controllers/AlertController';
+import { useUserContext } from '@/providers/userProvider';
 
 export default function UserListModal(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>('');
-  const { users, addUser, removeUser } = useProjectContext();
+  const { user } = useUserContext();
+  const { users, addUser, removeUser, project } = useProjectContext();
 
   const userArray = useMemo(() => Array.from(users.values()), [users]);
 
@@ -40,48 +42,70 @@ export default function UserListModal(): JSX.Element {
         </Text.Headline>
       </div>
 
-      <div className="space-y-2 pt-2 max-h-80 overflow-y-auto">
-        {userArray.map(({ id, email, name }) => (
-          <div
-            key={id}
-            className="flex justify-between px-2"
-          >
-            <div className="space-y-1">
-              <Text.Body>{name}</Text.Body>
-              <Text.Subtitle className="text-black/60">{email}</Text.Subtitle>
-            </div>
-            <button
-              onClick={() => handleRemoveUser(id)}
-              className="btn btn-error"
+      <div className="space-y-3 pt-2 max-h-80 overflow-y-auto">
+        {userArray.map(({ id, email, name }) => {
+          const isAdmin = project?.adminId === id;
+          const isSelf = user?.id === id;
+          const removeVisible = !isAdmin && !isSelf;
+          return (
+            <div
+              key={id}
+              className="flex justify-between px-2"
             >
-              <Text.Subtitle className="text-white">Remove</Text.Subtitle>
+              <div className="space-y-1">
+                <div className="flex space-x-2">
+                  <Text.Body>{isSelf ? 'You' : name}</Text.Body>
+                  {isAdmin && (
+                    <div className="bg-primary rounded-md p-1">
+                      <Text.Subtitle className="text-white text-[10px]">
+                        Admin
+                      </Text.Subtitle>
+                    </div>
+                  )}
+                </div>
+                <Text.Subtitle className="text-black/60">{email}</Text.Subtitle>
+              </div>
+              {removeVisible && (
+                <button
+                  onClick={() => handleRemoveUser(id)}
+                  className="btn btn-error"
+                >
+                  <Text.Subtitle className="text-white">Remove</Text.Subtitle>
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {user?.id === project?.adminId && (
+        <>
+          <div className="divider" />
+
+          <div className="flex space-x-3">
+            <input
+              disabled={isLoading}
+              onInput={({ currentTarget: { value } }) => setEmail(value)}
+              value={email}
+              type="text"
+              className="input text-sm bg-white text-black input-bordered w-full"
+              placeholder="fabian.simon98@gmail.com"
+            />
+            <button
+              onClick={handleAddUser}
+              className="btn btn-primary max-h-12"
+            >
+              {isLoading ? (
+                <span className="loading text-white"></span>
+              ) : (
+                <Text.Subtitle className="text-white">
+                  Add new user
+                </Text.Subtitle>
+              )}
             </button>
           </div>
-        ))}
-      </div>
-
-      <div className="divider" />
-
-      <div className="flex space-x-3">
-        <input
-          disabled={isLoading}
-          onInput={({ currentTarget: { value } }) => setEmail(value)}
-          value={email}
-          type="text"
-          className="input text-sm bg-white text-black input-bordered w-full"
-          placeholder="fabian.simon98@gmail.com"
-        />
-        <button
-          onClick={handleAddUser}
-          className="btn btn-primary max-h-12"
-        >
-          {isLoading ? (
-            <span className="loading text-white"></span>
-          ) : (
-            <Text.Subtitle className="text-white">Add new user</Text.Subtitle>
-          )}
-        </button>
-      </div>
+        </>
+      )}
     </div>
   );
 }

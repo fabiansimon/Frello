@@ -5,7 +5,7 @@ import { trpc, trpcClient } from './trpc';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Modal from './components/Modal';
 import Toast from './components/Toast';
-import UserProvider from './providers/userProvider';
+import UserProvider, { useUserContext } from './providers/userProvider';
 import ProjectProvider from './providers/projectProvider';
 import {
   BrowserRouter as Router,
@@ -43,6 +43,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 );
 
 function RouteContainer(): JSX.Element {
+  const { isAuth } = useUserContext();
   return (
     <Routes>
       <Route
@@ -58,10 +59,12 @@ function RouteContainer(): JSX.Element {
         path={ROUTES.home}
         element={<LandingPage />}
       />
-      <Route
-        path={route(ROUTES.project, ':projectId')}
-        element={<ProjectPage />}
-      />
+      {isAuth && (
+        <Route
+          path={route(ROUTES.project, ':projectId')}
+          element={<ProjectPage />}
+        />
+      )}
     </Routes>
   );
 }

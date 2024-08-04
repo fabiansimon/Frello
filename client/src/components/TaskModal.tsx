@@ -29,6 +29,7 @@ interface TaskModalProps {
 
 export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
   const { deleteTask, updateTask, tasks, users, project } = useProjectContext();
+  const { user } = useUserContext();
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -153,12 +154,14 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
         >
           <Text.Subtitle>Edit</Text.Subtitle>
         </button>
-        <button
-          onClick={handleDelete}
-          className="btn btn-error grow"
-        >
-          <Text.Subtitle className="text-white">Delete</Text.Subtitle>
-        </button>
+        {user?.id === project?.adminId && (
+          <button
+            onClick={handleDelete}
+            className="btn btn-error grow"
+          >
+            <Text.Subtitle className="text-white">Delete</Text.Subtitle>
+          </button>
+        )}
       </div>
       <StatusChip
         isLoading={isLoading}

@@ -35,6 +35,7 @@ export default function InputTaskModal({
   onRequestClose,
 }: InputTaskModalProps): JSX.Element {
   const { project, users, createTask, updateTask } = useProjectContext();
+
   const [isLoading, setIsLoading] = useState<LoadingType | null>(null);
   const [suggestedUser, setSuggestedUser] = useState<User | null>(null);
   const [input, setInput] = useState<TaskInput>({
@@ -204,7 +205,7 @@ export default function InputTaskModal({
           ))}
         </select>
         <button
-          disabled={isLoading !== null}
+          disabled={isLoading !== null || !input.description}
           onClick={handleSuggestion}
           className="btn btn-primary max-h-12"
         >
@@ -224,12 +225,14 @@ export default function InputTaskModal({
         </button>
       </div>
 
-      <Text.Subtitle
-        onClick={() => handleInput(InputType.ASSIGNEE)}
-        className="text-black/60 underline cursor-pointer"
-      >
-        Remove Assignee
-      </Text.Subtitle>
+      {input.assigneeId && (
+        <Text.Subtitle
+          onClick={() => handleInput(InputType.ASSIGNEE)}
+          className="text-black/60 underline cursor-pointer"
+        >
+          Remove Assignee
+        </Text.Subtitle>
+      )}
 
       {suggestedUser && (
         <div className="w-full bg-primary p-4 rounded-md mt-2">
