@@ -3,7 +3,6 @@ import Text from './Text';
 import { useMemo, useState } from 'react';
 import { AuthInput } from '@/lib';
 import { useUserContext } from '@/providers/userProvider';
-import ModalController from '@/controllers/ModalController';
 import { REGEX } from '@/constants/regex';
 import ToastController from '@/controllers/ToastController';
 
@@ -34,7 +33,7 @@ export default function AuthModal(): JSX.Element {
       input.name.trim() &&
       input.role.trim()
     );
-  }, [input]);
+  }, [input, isLogin]);
 
   const handleAuth = async () => {
     if (!REGEX.email.test(input.email))

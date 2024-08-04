@@ -65,10 +65,10 @@ export default function ProjectPage() {
   }, [filteredTasks]);
 
   return (
-    <div className="fixed flex grow max-w-full flex-col min-w-[100%] gap-4">
+    <div className="fixed flex grow max-w-full max-h-full flex-col min-h-[100%] min-w-[100%] gap-4">
       <Navbar />
-      <div className="flex grow w-full max-h-full justify-between">
-        <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 pr-[370px] pl-4 md:pl-10 max-h-full">
+      <div className="flex grow w-full justify-between">
+        <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 pr-[370px] pl-4 md:pl-10">
           {boardCols.map((data) => (
             <TaskColumn
               key={data.id}

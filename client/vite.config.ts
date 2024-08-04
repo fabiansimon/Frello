@@ -4,11 +4,19 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react()],
+  // server: {
+  //   port: 3000,
+  //   proxy: {
+  //     '/trpc': 'http://server:4000',
+  //   },
+  // },
   server: {
-    port: 3000,
-    proxy: {
-      '/trpc': 'http://server:4000',
+    watch: {
+      usePolling: true,
     },
+    host: true,
+    strictPort: true,
+    port: 3000,
   },
   resolve: {
     alias: {
