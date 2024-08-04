@@ -48,6 +48,14 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
 
   const task = useMemo(() => tasks.find((t) => t.id === taskId), [tasks]);
 
+  const { deletable, editable } = useMemo(() => {
+    const isAdmin = project?.adminId === user?.id;
+    return {
+      deletable: isAdmin,
+      editable: isAdmin || task?.assigneeId === user?.id,
+    };
+  }, [task, user, project]);
+
   const { title, description } = task!;
 
   useEffect(() => {
@@ -146,15 +154,18 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
         className="input text-sm h-11 bg-white text-black input-bordered w-full"
         placeholder="Comment (Press enter to send)"
       />
-      <div className="divider" />
+
+      {editable && deletable && <div className="divider" />}
       <div className="flex w-full space-x-2">
-        <button
-          onClick={handleEdit}
-          className="btn grow btn-outline"
-        >
-          <Text.Subtitle>Edit</Text.Subtitle>
-        </button>
-        {user?.id === project?.adminId && (
+        {editable && (
+          <button
+            onClick={handleEdit}
+            className="btn grow btn-outline"
+          >
+            <Text.Subtitle>Edit</Text.Subtitle>
+          </button>
+        )}
+        {deletable && (
           <button
             onClick={handleDelete}
             className="btn btn-error grow"
