@@ -1,4 +1,4 @@
-import { cn, generateId, getDateDifference, pluralize } from '@/lib/utils';
+import { cn, getDateDifference } from '@/lib/utils';
 import Text from './Text';
 import { TaskStatus, Comment, User } from '@prisma/client';
 import StatusChip from './StatusChip';
@@ -29,7 +29,6 @@ interface TaskModalProps {
 
 export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
   const { deleteTask, updateTask, tasks, users, project } = useProjectContext();
-  const { user } = useUserContext();
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
