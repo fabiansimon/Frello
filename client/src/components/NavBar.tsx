@@ -24,6 +24,7 @@ export default function Navbar({
     AlertController.show({
       title: 'Log out?',
       description: 'Are you sure you want to log out?',
+      buttonText: 'Continue',
       callback: () => {
         logout();
         navigation(route(ROUTES.home));

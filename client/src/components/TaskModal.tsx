@@ -176,7 +176,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
       </div>
       <StatusChip
         isLoading={isLoading}
-        onSelect={handleStatusUpdate}
+        onSelect={editable ? handleStatusUpdate : undefined}
         className="absolute right-4 top-1"
         status={task?.status ? TASK_STATUS[task.status] : TASK_STATUS.ToDo}
       />

@@ -166,6 +166,13 @@ export const removeUserFromProject = publicProcedure
         },
       });
 
+      await prisma.task.updateMany({
+        where: {
+          assigneeId: removeId,
+        },
+        data: { assigneeId: null },
+      });
+
       return true;
     } catch (error) {
       console.error(error);

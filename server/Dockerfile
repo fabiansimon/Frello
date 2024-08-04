@@ -1,16 +1,14 @@
-FROM node:alpine
+FROM node:18
 
 WORKDIR /app
 
-COPY package.json .
-
+COPY package*.json ./
 COPY yarn.lock ./
-
 RUN yarn install
 
 COPY . .
 
-RUN yarn prisma generate
+RUN npx prisma generate
 
 EXPOSE 4000
 
