@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { publicProcedure } from '../trpc';
 import { prisma } from '..';
 import { authUser } from '../utils/authHelper';
+import { sendTaskReminder } from '../utils/email';
 
 export const createTask = publicProcedure
   .input(
@@ -55,13 +56,14 @@ export const deleteTask = publicProcedure
       return true;
     } catch (error) {
       console.error(error);
-      throw new Error('Error creating task');
+      throw error;
     }
   });
 
 export const updateTask = publicProcedure
   .input(
     z.object({
+      projectId: z.string(),
       id: z.string(),
       title: z.string().optional(),
       description: z.string().optional(),
@@ -71,13 +73,29 @@ export const updateTask = publicProcedure
       assigneeId: z.string().nullable().optional(),
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     try {
-      const { id, ...updates } = input;
+      authUser(ctx);
+
+      const { id, projectId, ...updates } = input;
       const task = await prisma.task.update({
         where: { id },
         data: updates,
       });
+
+      if (updates.assigneeId) {
+        const user = await prisma.user.findFirst({
+          where: {
+            id: updates.assigneeId,
+          },
+        });
+
+        if (!user) throw new Error('User with that ID not found.');
+
+        const { email } = user;
+
+        await sendTaskReminder({ email, taskId: id, projectId });
+      }
 
       return task;
     } catch (error) {}

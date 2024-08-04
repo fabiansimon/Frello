@@ -22,7 +22,12 @@ export default function TaskColumn({
   const { title, tasks, color } = data;
 
   return (
-    <div className={cn('min-w-72 space-y-3', className)}>
+    <div
+      className={cn(
+        'min-w-72 space-y-3 grow flex flex-col max-h-full mb-10',
+        className
+      )}
+    >
       <div className="flex justify-between items-end">
         <Text.Body className="font-medium text-white">{title}</Text.Body>
         <div
@@ -37,7 +42,7 @@ export default function TaskColumn({
       </div>
       <div
         className={cn(
-          'flex flex-col p-3 grow space-y-4 h-full rounded-xl shadow-sm shadow-black/10',
+          'flex flex-col grow p-3 space-y-4 overflow-y-auto h-full rounded-xl shadow-sm shadow-black/10',
           color
         )}
       >

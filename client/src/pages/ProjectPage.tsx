@@ -1,25 +1,30 @@
 import Navbar from '@/components/NavBar';
 import TaskColumn from '@/components/TaskColumn';
+import TaskModal from '@/components/TaskModal';
 import TaskOverview from '@/components/TaskOverview';
-import UserTaskSheet from '@/components/UserTasksSheet';
 import { FILTER_BY_STATUS, TASK_STATUS } from '@/constants/TaskStatus';
-import useBreakingPoints from '@/hooks/useBreakingPoint';
-import { BreakPoint, PopulatedStatusType } from '@/lib';
+import ModalController from '@/controllers/ModalController';
+import { PopulatedStatusType } from '@/lib';
 import { useProjectContext } from '@/providers/projectProvider';
-import { trpc } from '@/trpc';
 import { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 export default function ProjectPage() {
-  const { project, tasks, load } = useProjectContext();
+  const { tasks, load } = useProjectContext();
 
-  const isSmall = useBreakingPoints(BreakPoint.XL);
+  const [searchParamas] = useSearchParams();
 
   const { projectId } = useParams();
 
   useEffect(() => {
     if (projectId) load(projectId);
   }, [projectId]);
+
+  useEffect(() => {
+    const selectedTask = searchParamas.get('selectedTask');
+    if (!selectedTask || !tasks.find((t) => t.id === selectedTask)) return;
+    ModalController.show(<TaskModal taskId={selectedTask} />);
+  }, [searchParamas, tasks]);
 
   const filteredTasks = useMemo(() => {
     return {
@@ -60,10 +65,10 @@ export default function ProjectPage() {
   }, [filteredTasks]);
 
   return (
-    <div className="fixed flex grow max-w-full max-h-full flex-col min-h-[100%] min-w-[100%] gap-4">
+    <div className="fixed flex grow max-w-full flex-col min-w-[100%] gap-4">
       <Navbar />
-      <div className="flex grow w-full justify-between">
-        <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 pr-[370px] pl-4 md:pl-10">
+      <div className="flex grow w-full max-h-full justify-between">
+        <div className="flex grow w-full overflow-x-auto overflow-y-hidden space-x-5 pr-[370px] pl-4 md:pl-10 max-h-full">
           {boardCols.map((data) => (
             <TaskColumn
               key={data.id}
@@ -71,10 +76,7 @@ export default function ProjectPage() {
             />
           ))}
         </div>
-        {/* {isSmall && ( */}
         <TaskOverview data={boardCols} />
-        {/* )} */}
-        {/* <UserTaskSheet /> */}
       </div>
     </div>
   );

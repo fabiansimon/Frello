@@ -46,7 +46,7 @@ function RouteContainer(): JSX.Element {
   const { isAuth } = useUserContext();
   return (
     <Routes>
-      <Route
+      {/* <Route
         path="*"
         element={
           <Navigate
@@ -54,7 +54,7 @@ function RouteContainer(): JSX.Element {
             replace={true}
           />
         }
-      />
+      /> */}
       <Route
         path={ROUTES.home}
         element={<LandingPage />}

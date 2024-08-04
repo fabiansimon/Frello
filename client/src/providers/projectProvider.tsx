@@ -101,9 +101,11 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
 
   const updateTask = useCallback(
     async ({ taskId, updates }: UpdateTaskProps) => {
+      if (!project) return;
       try {
         await _updateTask.mutateAsync({
           id: taskId,
+          projectId: project.id,
           ...updates,
         });
         setTasks((prev) =>
@@ -115,7 +117,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
         handleError(error);
       }
     },
-    []
+    [project]
   );
 
   const createProject = useCallback(async (input: ProjectInput) => {
