@@ -67,6 +67,8 @@
 
 - **OAuth 2.0 authentication**: Currently, to simplify the process, user authentication only requires an email. This is obviously far from production ready
 
+- **Improve Error handling**: The backend currently only returns error messages. Ideally it should return a corresponding status code as well.
+
 # Ideal Testing Flow
 
 (When creating a user make sure to add detailed information in the expertise field. You cannot edit this later.)
