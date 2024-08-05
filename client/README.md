@@ -1,5 +1,14 @@
 # "Frello" - An Project Management Application
 
+## Installation
+
+```
+  git clone https://github.com/fabiansimon/SelectCode.git
+  cd selectcode
+  Start you docker engine 🏎️
+  docker-compose up --build
+```
+
 ### Architecture
 
 - **Frontend:** React.js
@@ -56,3 +65,52 @@
 - **Testing**: Currently, only two server-side tests have been implemented, focusing on the public routes. The next steps involve writing tests for the protected routes and implementing potential frontend tests
 
 - **OAuth 2.0 authentication**: Currently, to simplify the process, user authentication only requires an email. This is obviously far from production ready
+
+# Ideal Testing Flow
+
+(When creating a user make sure to add detailed information in the expertise field. You cannot edit this later.)
+
+- Create new user
+  Example:
+
+```
+  Name: Max Musterman
+  Role: Full-Stack Developer
+  Email: max@musterman.com
+  Expertise: With 10 years of experience in Nest.js and Express.js, my expertise predominantly lies in backend development (around 70%), with the remaining 30% in frontend technologies. I excel at managing and executing complex database migrations, ensuring smooth transitions and minimal downtime.
+```
+
+- Create new project
+  Example:
+
+```
+  Name: SelectCode
+  Expertise: SelectCode is a multinational conglomerate dedicated to leveraging AI to its fullest potential. With a focus on delivering innovative solutions, SelectCode empowers users through its cutting-edge platform, meinGPT. This beautiful platform offers unparalleled assistance, enabling people to harness the power of artificial intelligence in their daily lives and professional endeavors.
+```
+
+- Create new Task(s)
+  Example:
+
+```
+  Title: Deploy Backend Changes
+  Description:  Deploy the updated backend changes to integrate the latest OpenAI model. This deployment will enhance the platform's capabilities, ensuring users benefit from the most advanced AI functionalities.
+  Assign: No one (leave unselected)
+```
+
+- Log out and create new Account
+  Example:
+
+```
+  Name: Julia Simon
+  Role: Frontend Engineer
+  Email: julia@simon.com
+  Expertise: With 8 years of experience in React and Angular, my expertise predominantly lies in frontend development. I excel at designing and implementing beautiful, user-friendly interfaces that enhance user experience and engagement. My focus is on writing clean, efficient code and creating seamless, visually appealing UIs.
+```
+
+- Log out and login with first account you created
+
+- Add julia@simon to the project by clicking on "1 user" in the top left
+
+- Open the latest task you created and edit it. Check out the AI suggestion if it works.
+
+- Check out the rest. Change statuses, create projects and tasks. Reassign them etc.

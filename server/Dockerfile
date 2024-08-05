@@ -12,4 +12,4 @@ RUN npx prisma generate
 
 EXPOSE 4000
 
-CMD ["yarn", "start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && yarn start"]
