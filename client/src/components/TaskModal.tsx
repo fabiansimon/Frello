@@ -19,7 +19,6 @@ interface CommentsContainerProps {
   comments: Comment[];
   isLoading: boolean;
   onDelete: (commentId: string) => void;
-  users: Map<string, User>;
   className?: string;
 }
 
@@ -153,7 +152,6 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
       <Text.Body>{`Comments (${comments.length})`}</Text.Body>
       <CommentsContainer
         onDelete={handleCommentDeletion}
-        users={users}
         isLoading={commentsLoading}
         className="max-h-52 overflow-y-auto"
         comments={comments}
@@ -200,8 +198,12 @@ function CommentsContainer({
   isLoading,
   onDelete,
   className,
-  users,
 }: CommentsContainerProps): JSX.Element {
+  const { project, users } = useProjectContext();
+  const { user } = useUserContext();
+
+  const isAdmin = user?.id === project?.adminId;
+
   return (
     <div
       className={cn(
@@ -218,6 +220,7 @@ function CommentsContainer({
       {comments.map(({ content, id, userId, createdAt }) => {
         const { text } = getDateDifference(createdAt);
         const authored = `by ${users.get(userId)?.name} • ${text}`;
+        const deletable = isAdmin || userId === user?.id;
         return (
           <div
             className="w-full flex justify-between items-center"
@@ -229,15 +232,17 @@ function CommentsContainer({
                 {authored}
               </Text.Subtitle>
             </div>
-            <div
-              onClick={() => onDelete(id)}
-              className="border border-error/20 rounded-full p-2 cursor-pointer"
-            >
-              <Delete01Icon
-                className="text-error"
-                size={15}
-              />
-            </div>
+            {deletable && (
+              <div
+                onClick={() => onDelete(id)}
+                className="border border-error/20 rounded-full p-2 cursor-pointer"
+              >
+                <Delete01Icon
+                  className="text-error"
+                  size={15}
+                />
+              </div>
+            )}
           </div>
         );
       })}
