@@ -21,6 +21,14 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://postgres:seas11@db:5432/frello
+      OPENAI_KEY: ${OPENAI_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      DOMAIN_BASE: ${DOMAIN_BASE}
+      PORT: ${PORT}
+    env_file:
+      - .env
 
   client:
     build: ./client

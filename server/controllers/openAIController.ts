@@ -7,7 +7,7 @@ import { prisma } from '..';
 
 // Initialize OpenAI with the provided API key
 const openai = new OpenAI({
-  apiKey: process.env.OPENAPI_KEY,
+  apiKey: process.env.OPENAI_KEY,
 });
 
 // Function to get AI suggestion for task assignment

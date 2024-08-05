@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 import cors from 'cors';
 import express from 'express';
 import * as trpcExpress from '@trpc/server/adapters/express';
