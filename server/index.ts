@@ -27,7 +27,7 @@ import { Context, router } from './trpc';
 
 export const prisma = new PrismaClient();
 
-const appRouter = router({
+export const appRouter = router({
   fetchUserProjects,
   fetchProject,
   fetchAISuggestion,
@@ -45,7 +45,7 @@ const appRouter = router({
   removeComment,
 });
 
-const app = express();
+export const app = express();
 
 app.use(cors());
 
