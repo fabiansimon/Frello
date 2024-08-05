@@ -52,20 +52,30 @@ export const createComment = publicProcedure
 export const removeComment = publicProcedure
   .input(
     z.object({
+      projectId: z.string(),
       commentId: z.string(),
     })
   )
   .mutation(async ({ input, ctx }) => {
-    const { commentId } = input;
+    const { commentId, projectId } = input;
 
     try {
-      authUser(ctx);
+      const userId = authUser(ctx);
+
+      const project = await prisma.project.findFirst({
+        where: { id: projectId },
+      });
+
+      if (!project) throw new Error('No project found with that ID');
 
       const comment = await prisma.comment.findFirst({
         where: { id: commentId },
       });
 
       if (!comment) throw new Error('No comment found with that ID');
+
+      if (comment.userId !== userId && project.adminId !== userId)
+        throw new Error('Not authorized to delete comment');
 
       await prisma.comment.delete({
         where: { id: commentId },

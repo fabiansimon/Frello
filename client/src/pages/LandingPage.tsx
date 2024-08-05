@@ -4,26 +4,33 @@ import ModalController from '@/controllers/ModalController';
 import CreateProjectModal from '@/components/CreateProjectModal';
 import Text from '@/components/Text';
 import { Project } from '@prisma/client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ToastController from '@/controllers/ToastController';
 import { useNavigate } from 'react-router-dom';
 import { route, ROUTES } from '@/constants/routes';
 import { useUserContext } from '@/providers/userProvider';
 import AuthModal from '@/components/AuthModal';
+import { Delete01Icon } from 'hugeicons-react';
+import AlertController from '@/controllers/AlertController';
 
 interface ProjectTileProps {
-  onClick: () => void;
   project: Project;
+  isAdmin: boolean;
+  onClick: () => void;
+  onDelete: () => void;
 }
 
 export default function LandingPage() {
-  const { isAuth } = useUserContext();
+  const { isAuth, logout, user } = useUserContext();
   const navigation = useNavigate();
+
+  const _deleteProject = trpc.deleteProject.useMutation();
 
   const {
     data: projects,
     error,
     isLoading,
+    refetch,
   } = trpc.fetchUserProjects.useQuery(undefined, {
     enabled: isAuth,
   });
@@ -37,12 +44,32 @@ export default function LandingPage() {
     if (error) ToastController.showErrorToast({ description: error.message });
   }, [error]);
 
+  const handleDeleteProject = async (projectId: string) => {
+    AlertController.show({
+      title: 'Are you sure?',
+      description: 'This action cannot be reverted.',
+      callback: async () => await deleteProject(projectId),
+    });
+  };
+
   const handleCreateProject = () => {
     ModalController.show(<CreateProjectModal />);
   };
 
   const handleNavigation = (id: string) => {
     navigation(route(ROUTES.project, id));
+  };
+
+  const deleteProject = async (projectId: string) => {
+    try {
+      await _deleteProject.mutateAsync({
+        projectId,
+      });
+      refetch();
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      ToastController.showErrorToast({ description: errorMessage });
+    }
   };
 
   return (
@@ -64,13 +91,25 @@ export default function LandingPage() {
             </Text.Body>
           )}
 
-          {projects.map((project) => (
-            <ProjectTile
-              onClick={() => handleNavigation(project.id)}
-              key={project.id}
-              project={project}
-            />
-          ))}
+          <div className="bg-neutral-100 p-2 rounded-md">
+            <Text.Subtitle className="text-black/60">
+              If you want to be added to an exisiting project, you must be
+              invited by the admin.
+            </Text.Subtitle>
+          </div>
+
+          {projects.map((project) => {
+            const isAdmin = user?.id === project.adminId;
+            return (
+              <ProjectTile
+                onClick={() => handleNavigation(project.id)}
+                onDelete={() => handleDeleteProject(project.id)}
+                isAdmin={isAdmin}
+                key={project.id}
+                project={project}
+              />
+            );
+          })}
 
           <div className="divider" />
 
@@ -80,21 +119,53 @@ export default function LandingPage() {
           >
             <Text.Body className="text-white">Create New</Text.Body>
           </button>
+          <Text.Subtitle
+            onClick={logout}
+            className="text-black/60 cursor-pointer text-center pt-1 underline"
+          >
+            Log out
+          </Text.Subtitle>
         </div>
       )}
     </div>
   );
 }
 
-function ProjectTile({ project, onClick }: ProjectTileProps): JSX.Element {
+function ProjectTile({
+  project,
+  isAdmin,
+  onClick,
+  onDelete,
+}: ProjectTileProps): JSX.Element {
+  const [hovererd, setHovered] = useState<boolean>(false);
   const { title, description } = project;
+
   return (
     <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onClick={onClick}
-      className="w-full hover:bg-neutral-100 p-2 rounded-lg cursor-pointer space-y-1"
+      className="w-full hover:bg-neutral-100 p-2 rounded-lg cursor-pointer flex justify-between"
     >
-      <Text.Body>{title}</Text.Body>
-      <Text.Subtitle className="text-black/60">{description}</Text.Subtitle>
+      <div className="space-y-1">
+        <Text.Body>{title}</Text.Body>
+        <Text.Subtitle className="text-black/60">{description}</Text.Subtitle>
+      </div>
+      {isAdmin && hovererd && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="bg-white hover:scale-[102%] rounded-md items-center justify-center flex space-x-2 px-2"
+        >
+          <Delete01Icon
+            size={16}
+            className="text-black/60"
+          />
+          <Text.Subtitle className="text-black/60">Delete</Text.Subtitle>
+        </div>
+      )}
     </div>
   );
 }

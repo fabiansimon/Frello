@@ -95,6 +95,76 @@ export const createProject = publicProcedure
     }
   });
 
+export const deleteProject = publicProcedure
+  .input(
+    z.object({
+      projectId: z.string(),
+    })
+  )
+  .mutation(async ({ input, ctx }) => {
+    const { projectId } = input;
+
+    try {
+      const userId = authUser(ctx);
+
+      const project = await prisma.project.findFirst({
+        where: {
+          id: projectId,
+        },
+        include: {
+          tasks: {
+            include: {
+              comments: true,
+            },
+          },
+          users: true,
+        },
+      });
+
+      if (!project) throw new Error('No project found with that ID');
+
+      const { tasks, adminId } = project;
+      if (adminId !== userId)
+        throw new Error('Not authorized to delete project');
+
+      const taskIds = tasks.map((t) => t.id);
+
+      await prisma.$transaction([
+        prisma.comment.deleteMany({
+          where: {
+            taskId: {
+              in: taskIds,
+            },
+          },
+        }),
+        prisma.task.deleteMany({
+          where: {
+            projectId: projectId,
+          },
+        }),
+        prisma.project.update({
+          where: {
+            id: projectId,
+          },
+          data: {
+            users: {
+              set: [],
+            },
+          },
+        }),
+        prisma.project.delete({
+          where: {
+            id: projectId,
+          },
+        }),
+      ]);
+      return true;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  });
+
 export const addUserToProject = publicProcedure
   .input(z.object({ email: z.string().email(), projectId: z.string() }))
   .mutation(async ({ input, ctx }) => {

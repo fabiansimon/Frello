@@ -107,11 +107,22 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     AlertController.show({
       title: 'Delete comment?',
       description: 'Are you sure?',
-      callback: async () => {
-        await _removeComment.mutateAsync({ commentId });
-        setComments((prev) => prev.filter(({ id }) => id !== commentId));
-      },
+      callback: async () => deleteComment(commentId),
     });
+  };
+
+  const deleteComment = async (commentId: string) => {
+    if (!project) return;
+    try {
+      await _removeComment.mutateAsync({
+        commentId,
+        projectId: project.id,
+      });
+      setComments((prev) => prev.filter(({ id }) => id !== commentId));
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      ToastController.showErrorToast({ description: errorMessage });
+    }
   };
 
   useKeyShortcut({ hotkey: 'Enter', action: sendMessage });

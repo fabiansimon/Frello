@@ -126,7 +126,7 @@ function Toast(): JSX.Element {
           {info?.title || defaultMessage}
         </Text.Body>
         {info?.description && (
-          <Text.Subtitle className="text-white/70">
+          <Text.Subtitle className="text-white/70 text-start">
             {info.description}
           </Text.Subtitle>
         )}
