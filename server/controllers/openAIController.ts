@@ -2,13 +2,15 @@ import { User } from '@prisma/client';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { REGEX } from '../constants/regex';
-import { publicProcedure } from '../trpc';
+import { protectedProcedure } from '../trpc';
 import { prisma } from '..';
 
+// Initialize OpenAI with the provided API key
 const openai = new OpenAI({
   apiKey: process.env.OPENAPI_KEY,
 });
 
+// Function to get AI suggestion for task assignment
 async function getOpenAISuggestion({
   users,
   taskDescription,
@@ -32,6 +34,7 @@ async function getOpenAISuggestion({
   return res.choices[0].message.content;
 }
 
+// Function to generate the prompt for AI based on users and task description
 function generateSuggestionPrompt({
   users,
   taskDescription,
@@ -42,10 +45,11 @@ function generateSuggestionPrompt({
   const userDescription = users.reduce((acc, { id, expertise, role }) => {
     return acc + `• ID: ${id}; Role: ${role}; Expertise: "${expertise}\n"`;
   }, '');
-  return `Take a task with following description: "${taskDescription}". Now take a look at all the possible employees to fulfill said task:\n ${userDescription}. Please pick what employee is most suitable for said taks and only answer with their ID.`;
+  return `Take a task with the following description: "${taskDescription}". Now take a look at all the possible employees to fulfill said task:\n ${userDescription}. Please pick the employee who is most suitable for the task and only answer with their ID.`;
 }
 
-export const fetchAISuggestion = publicProcedure
+// Procedure to fetch AI suggestion for task assignment
+export const fetchAISuggestion = protectedProcedure
   .input(
     z.object({
       projectId: z.string(),
@@ -56,6 +60,7 @@ export const fetchAISuggestion = publicProcedure
     const { projectId, taskDescription } = input;
 
     try {
+      // Fetch the project along with its users
       const data = await prisma.project.findFirst({
         where: {
           id: projectId,
@@ -64,21 +69,28 @@ export const fetchAISuggestion = publicProcedure
           users: true,
         },
       });
+
+      // Check if the project exists
       if (!data)
         throw new Error('No project found with the provided project ID.');
 
       const { users } = data;
 
+      // Get AI suggestion for task assignment
       const suggestion = await getOpenAISuggestion({
         users,
         taskDescription,
       });
+
+      // Validate the AI suggestion
       if (!suggestion || !REGEX.uuid.test(suggestion))
-        throw new Error('Invalid AI Suggestion. Please try again later.');
+        throw new Error(
+          'Invalid AI suggestion received. Please try again later.'
+        );
 
       return { userId: suggestion };
     } catch (error) {
-      console.error(error);
-      throw new Error('Error fetching AI suggestion');
+      console.error('Error fetching AI Suggestion:', error);
+      throw error;
     }
   });

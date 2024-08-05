@@ -1,24 +1,26 @@
 import { z } from 'zod';
-import { publicProcedure } from '../trpc';
-import { authUser } from '../utils/authHelper';
+import { protectedProcedure } from '../trpc';
 import { prisma } from '..';
 
-export const fetchUserProjects = publicProcedure.query(async ({ ctx }) => {
+// Fetch projects associated with the authenticated user
+export const fetchUserProjects = protectedProcedure.query(async ({ ctx }) => {
   try {
-    const userId = authUser(ctx);
+    const { userId } = ctx;
 
+    // Find all projects where the user is a member
     const projects = await prisma.project.findMany({
       where: { users: { some: { id: userId } } },
     });
 
     return projects;
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching user projects:', error);
     throw error;
   }
 });
 
-export const fetchProject = publicProcedure
+// Fetch a specific project by ID
+export const fetchProject = protectedProcedure
   .input(
     z.object({
       projectId: z.string(),
@@ -27,8 +29,9 @@ export const fetchProject = publicProcedure
   .query(async ({ input, ctx }) => {
     const { projectId } = input;
     try {
-      const userId = authUser(ctx);
+      const { userId } = ctx;
 
+      // Find the project with its tasks and users
       const data = await prisma.project.findFirst({
         where: {
           id: projectId,
@@ -44,6 +47,7 @@ export const fetchProject = publicProcedure
 
       const { users, tasks, ...project } = data;
 
+      // Check if the authenticated user is part of the project
       if (!users.some((u) => u.id === userId))
         throw new Error('User is not part of the project.');
 
@@ -53,12 +57,13 @@ export const fetchProject = publicProcedure
         project,
       };
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching project:', error);
       throw error;
     }
   });
 
-export const createProject = publicProcedure
+// Create a new project
+export const createProject = protectedProcedure
   .input(
     z.object({
       title: z.string(),
@@ -69,8 +74,9 @@ export const createProject = publicProcedure
     const { title, description } = input;
 
     try {
-      const userId = authUser(ctx);
+      const { userId } = ctx;
 
+      // Create a new project with the authenticated user as the admin
       const project = await prisma.project.create({
         data: {
           adminId: userId,
@@ -90,12 +96,13 @@ export const createProject = publicProcedure
 
       return project;
     } catch (error) {
-      console.error(error);
+      console.error('Error creating project:', error);
       throw error;
     }
   });
 
-export const deleteProject = publicProcedure
+// Delete an existing project
+export const deleteProject = protectedProcedure
   .input(
     z.object({
       projectId: z.string(),
@@ -105,8 +112,9 @@ export const deleteProject = publicProcedure
     const { projectId } = input;
 
     try {
-      const userId = authUser(ctx);
+      const { userId } = ctx;
 
+      // Find the project and its related tasks and comments
       const project = await prisma.project.findFirst({
         where: {
           id: projectId,
@@ -124,11 +132,14 @@ export const deleteProject = publicProcedure
       if (!project) throw new Error('No project found with that ID');
 
       const { tasks, adminId } = project;
+
+      // Check if the authenticated user is the admin
       if (adminId !== userId)
         throw new Error('Not authorized to delete project');
 
       const taskIds = tasks.map((t) => t.id);
 
+      // Delete comments, tasks, and the project itself in a transaction
       await prisma.$transaction([
         prisma.comment.deleteMany({
           where: {
@@ -160,31 +171,35 @@ export const deleteProject = publicProcedure
       ]);
       return true;
     } catch (error) {
-      console.error(error);
+      console.error('Error deleting project:', error);
       throw error;
     }
   });
 
-export const addUserToProject = publicProcedure
+// Add a user to a project
+export const addUserToProject = protectedProcedure
   .input(z.object({ email: z.string().email(), projectId: z.string() }))
   .mutation(async ({ input, ctx }) => {
     try {
-      const userId = authUser(ctx);
-
+      const { userId } = ctx;
       const { email, projectId } = input;
 
+      // Find the user by email
       const user = await prisma.user.findFirst({ where: { email } });
       if (!user) throw new Error('No user found with the provided email.');
 
+      // Find the project by ID
       const project = await prisma.project.findFirst({
         where: { id: projectId },
       });
       if (!project)
         throw new Error('No project found with the provided project ID.');
 
+      // Check if the authenticated user is the admin
       if (project.adminId !== userId)
         throw new Error('Only the admin can add users to the project.');
 
+      // Add the user to the project
       await prisma.project.update({
         where: { id: projectId },
         data: {
@@ -199,31 +214,35 @@ export const addUserToProject = publicProcedure
 
       return user;
     } catch (error) {
-      console.error(error);
+      console.error('Error adding user to project:', error);
       throw error;
     }
   });
 
-export const removeUserFromProject = publicProcedure
+// Remove a user from a project
+export const removeUserFromProject = protectedProcedure
   .input(z.object({ userId: z.string(), projectId: z.string() }))
   .mutation(async ({ input, ctx }) => {
     try {
-      const userId = authUser(ctx);
-
+      const { userId } = ctx;
       const { userId: removeId, projectId } = input;
 
+      // Find the user by ID
       const user = await prisma.user.findFirst({ where: { id: removeId } });
       if (!user) throw new Error('No user found with the provided ID.');
 
+      // Find the project by ID
       const project = await prisma.project.findFirst({
         where: { id: projectId },
       });
       if (!project)
         throw new Error('No project found with the provided project ID.');
 
+      // Check if the authenticated user is the admin
       if (project.adminId !== userId)
         throw new Error('Only the admin can remove users from the project.');
 
+      // Remove the user from the project
       await prisma.project.update({
         where: { id: projectId },
         data: {
@@ -236,6 +255,7 @@ export const removeUserFromProject = publicProcedure
         },
       });
 
+      // Set the assigneeId to null for all tasks assigned to the removed user
       await prisma.task.updateMany({
         where: {
           assigneeId: removeId,
@@ -245,7 +265,7 @@ export const removeUserFromProject = publicProcedure
 
       return true;
     } catch (error) {
-      console.error(error);
+      console.error('Error removing users from project:', error);
       throw error;
     }
   });
