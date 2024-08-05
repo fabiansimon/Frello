@@ -1,6 +1,9 @@
 import { OperationSystem } from '@/lib';
 import { useEffect, useState } from 'react';
 
+/**
+ * Custom hook to detect the user's operating system based on the navigator platform and user agent.
+ */
 function useDetectOS() {
   const [os, setOS] = useState<OperationSystem>(OperationSystem.MISC);
 

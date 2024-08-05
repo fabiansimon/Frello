@@ -1,11 +1,13 @@
+// Define the routes for the application
 export const ROUTES = {
   project: 'project',
   home: '',
 };
 
-export const openRoutes = new Set([ROUTES.home]);
-
-export function route(name: string, ...params: string[]) {
+/**
+ * Generates a URL path for a given route name and parameters.
+ */
+export function route(name: string, ...params: string[]): string {
   let post = '';
   for (const param of params) {
     post += '/';

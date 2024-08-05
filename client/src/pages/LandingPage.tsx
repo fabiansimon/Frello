@@ -24,8 +24,10 @@ export default function LandingPage() {
   const { isAuth, logout, user } = useUserContext();
   const navigation = useNavigate();
 
+  // Mutation
   const _deleteProject = trpc.deleteProject.useMutation();
 
+  // Query
   const {
     data: projects,
     error,
@@ -35,11 +37,13 @@ export default function LandingPage() {
     enabled: isAuth,
   });
 
+  // Show authentication modal if user is not authenticated
   useEffect(() => {
     if (!isAuth) return ModalController.show(<AuthModal />, false);
     ModalController.close();
   }, [isAuth]);
 
+  // Show error toast if there is an error fetching projects
   useEffect(() => {
     if (error) ToastController.showErrorToast({ description: error.message });
   }, [error]);
@@ -60,6 +64,7 @@ export default function LandingPage() {
     navigation(route(ROUTES.project, id));
   };
 
+  // Delete project and refetch projects list
   const deleteProject = async (projectId: string) => {
     try {
       await _deleteProject.mutateAsync({

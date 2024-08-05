@@ -9,6 +9,9 @@ const breakpointsData = {
   [BreakPoint.XXL]: 1536,
 };
 
+/**
+ * Custom hook to detect if the current window width is less than a specified breakpoint.
+ */
 function useBreakingPoints(breakpoint: BreakPoint): boolean {
   const [breakActive, setBreakActive] = useState<boolean>(() => {
     return window.innerWidth < breakpointsData[breakpoint];

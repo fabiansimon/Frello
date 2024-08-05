@@ -11,21 +11,22 @@ import { useParams, useSearchParams } from 'react-router-dom';
 
 export default function ProjectPage() {
   const { tasks, load } = useProjectContext();
-
-  const [searchParamas] = useSearchParams();
-
+  const [searchParams] = useSearchParams();
   const { projectId } = useParams();
 
+  // Load project data when projectId changes
   useEffect(() => {
     if (projectId) load(projectId);
   }, [projectId]);
 
+  // Show TaskModal if selectedTask is in search parameters
   useEffect(() => {
-    const selectedTask = searchParamas.get('selectedTask');
+    const selectedTask = searchParams.get('selectedTask');
     if (!selectedTask || !tasks.find((t) => t.id === selectedTask)) return;
     ModalController.show(<TaskModal taskId={selectedTask} />);
-  }, [searchParamas, tasks]);
+  }, [searchParams, tasks]);
 
+  // Filter tasks by status
   const filteredTasks = useMemo(() => {
     return {
       progressTasks: tasks ? tasks.filter(FILTER_BY_STATUS('InProgress')) : [],
@@ -36,6 +37,7 @@ export default function ProjectPage() {
     };
   }, [tasks]);
 
+  // Populate board columns with tasks by status
   const boardCols: PopulatedStatusType[] = useMemo(() => {
     const { progressTasks, toDoTasks, reviewTasks, declinedTasks, doneTasks } =
       filteredTasks;

@@ -1,6 +1,7 @@
 import { Task } from '@prisma/client';
 import { StatusType } from '@/lib';
 
+// Define the status types for tasks with associated properties
 export const TASK_STATUS: Record<string, StatusType> = {
   ToDo: {
     id: 'ToDo',
@@ -29,6 +30,9 @@ export const TASK_STATUS: Record<string, StatusType> = {
   },
 };
 
+/**
+ * Filters tasks by their status type.
+ */
 export function FILTER_BY_STATUS(type: string) {
   return (task: Task) => task.status === type;
 }

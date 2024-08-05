@@ -7,6 +7,10 @@ interface KeyShortcutProps {
   action: () => void;
   ignoreMetaKey?: boolean;
 }
+
+/**
+ * Custom hook to execute a specified action when a certain key combination is pressed.
+ */
 function useKeyShortcut({
   hotkey,
   action,
@@ -23,6 +27,7 @@ function useKeyShortcut({
 
       if (metaDown && e.key.toLowerCase() === hotkey.toLowerCase()) action();
     };
+
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);

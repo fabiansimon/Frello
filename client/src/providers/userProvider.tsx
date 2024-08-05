@@ -21,23 +21,27 @@ interface UserContextType {
   logout: () => void;
 }
 
+// Create a User context
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export default function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  // Mutations
+  // mutations for user registration and login
   const _registerUser = trpc.registerUser.useMutation();
   const _loginUser = trpc.loginUser.useMutation();
 
+  // check if the user is authenticated
   const isAuth = useMemo(() => user !== null, [user]);
 
+  // Handle errors by displaying a toast notification
   const handleError = (error: unknown) => {
     const errorMessage = (error as Error).message;
     console.error(error);
     ToastController.showErrorToast({ description: errorMessage });
   };
 
+  // Register a new user
   const register = useCallback(async (input: AuthInput) => {
     const { email, expertise, role, name } = input;
     try {
@@ -55,6 +59,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Log in an existing user
   const login = useCallback(async (input: AuthInput) => {
     const { email } = input;
     try {
@@ -67,11 +72,13 @@ export default function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Log out the user
   const logout = useCallback(() => {
     setUser(null);
     LocalStorage.cleanUserData();
   }, []);
 
+  // Load user data from local storage on initial render
   useEffect(() => {
     const user = LocalStorage.fetchUserData();
     if (user) setUser(user);
@@ -82,6 +89,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
+// Hook to use the User context
 export function useUserContext() {
   const context = useContext(UserContext);
 

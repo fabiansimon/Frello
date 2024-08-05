@@ -41,6 +41,7 @@ interface ProjectContextType {
   createProject: (input: ProjectInput) => Promise<void>;
 }
 
+// Create a context for the project
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export default function ProjectProvider({ children }: { children: ReactNode }) {
@@ -67,16 +68,19 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
   const _addUserToProject = trpc.addUserToProject.useMutation();
   const _removeUserFromProject = trpc.removeUserFromProject.useMutation();
 
+  // Handle errors by displaying a toast notification
   const handleError = (error: unknown) => {
     const errorMessage = (error as Error).message;
     console.error(error);
     ToastController.showErrorToast({ description: errorMessage });
   };
 
+  // Show error toast if an error by the query occures
   useEffect(() => {
     if (error) ToastController.showErrorToast({ description: error.message });
   }, [error]);
 
+  // Update state when project data from query changes
   useEffect(() => {
     if (!data) return;
     const { tasks, project, users } = data;
@@ -89,16 +93,19 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     });
   }, [data]);
 
+  // Assigned Tasks to authenticated user
   const personalTasks = useMemo(
     () => tasks.filter((task) => task.assigneeId === user?.id),
     [tasks, user]
   );
 
+  // Load a project by ID
   const load = useCallback(
     async (projectId: string) => setProjectId(projectId),
     []
   );
 
+  // Update a task in the project
   const updateTask = useCallback(
     async ({ taskId, updates }: UpdateTaskProps) => {
       if (!project) return;
@@ -120,6 +127,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     [project]
   );
 
+  // Create a new project
   const createProject = useCallback(async (input: ProjectInput) => {
     const { title, description } = input;
     try {
@@ -134,6 +142,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Add a user to the project
   const addUser = useCallback(
     async (email: string) => {
       if (!project) return;
@@ -154,6 +163,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     [project]
   );
 
+  // Remove a user from the project
   const removeUser = useCallback(
     async (userId: string) => {
       if (!project) return;
@@ -174,6 +184,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     [project]
   );
 
+  // Delete a task from the project
   const deleteTask = useCallback(async (taskId: string) => {
     try {
       await _deleteTask.mutateAsync({ taskId });
@@ -183,6 +194,7 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Create a new task in the project
   const createTask = useCallback(
     async (input: TaskInput) => {
       if (!project) return;
@@ -217,11 +229,13 @@ export default function ProjectProvider({ children }: { children: ReactNode }) {
     createTask,
     load,
   };
+
   return (
     <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
   );
 }
 
+// Hook to use the Project context
 export function useProjectContext() {
   const context = useContext(ProjectContext);
 

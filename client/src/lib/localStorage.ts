@@ -1,10 +1,12 @@
-import { User } from '@prisma/client';
 import { AuthUser } from '.';
 
 const KEYS = {
   userData: 'userData',
 };
 
+/**
+ * Class to handle local storage operations
+ */
 export class LocalStorage {
   static saveUserData(data: AuthUser) {
     localStorage.setItem(KEYS.userData, JSON.stringify(data));
