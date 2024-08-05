@@ -2,6 +2,7 @@
 
 ## Installation
 
+(Make sure to clean you cookies from localhost:3000)
 ```
   git clone https://github.com/fabiansimon/SelectCode.git
   cd selectcode
