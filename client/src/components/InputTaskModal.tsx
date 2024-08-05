@@ -204,25 +204,27 @@ export default function InputTaskModal({
             </option>
           ))}
         </select>
-        <button
-          disabled={isLoading !== null || !input.description}
-          onClick={handleSuggestion}
-          className="btn btn-primary max-h-12"
-        >
-          {isLoading === LoadingType.AI ? (
-            <span className="text-white loading" />
-          ) : (
-            <>
-              <ArtificialIntelligence04Icon
-                size={18}
-                className="text-white"
-              />
-              <Text.Subtitle className="text-white">
-                AI Suggestion
-              </Text.Subtitle>
-            </>
-          )}
-        </button>
+        {userArray.length > 1 && (
+          <button
+            disabled={isLoading !== null || !input.description}
+            onClick={handleSuggestion}
+            className="btn btn-primary max-h-12"
+          >
+            {isLoading === LoadingType.AI ? (
+              <span className="text-white loading" />
+            ) : (
+              <>
+                <ArtificialIntelligence04Icon
+                  size={18}
+                  className="text-white"
+                />
+                <Text.Subtitle className="text-white">
+                  AI Suggestion
+                </Text.Subtitle>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {input.assigneeId && (

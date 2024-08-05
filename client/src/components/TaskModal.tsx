@@ -27,7 +27,7 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
-  const { deleteTask, updateTask, tasks, users, project } = useProjectContext();
+  const { deleteTask, updateTask, tasks, project } = useProjectContext();
   const { user } = useUserContext();
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
@@ -35,18 +35,21 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
   const [comments, setComments] = useState<Comment[]>([]);
   const [input, setInput] = useState<string>('');
 
+  // Query
   const {
     data,
     error,
     isLoading: commentsLoading,
   } = trpc.fetchComments.useQuery({ taskId });
 
-  // Comment mutations
+  // Mutations
   const _createComment = trpc.createComment.useMutation();
   const _removeComment = trpc.removeComment.useMutation();
 
+  // Find the task based on taskId
   const task = useMemo(() => tasks.find((t) => t.id === taskId), [tasks]);
 
+  // Determine if the current user can edit or delete the task
   const { deletable, editable } = useMemo(() => {
     const isAdmin = project?.adminId === user?.id;
     return {
@@ -57,10 +60,12 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
 
   const { title, description } = task!;
 
+  // Show error if there is an error fetching comments
   useEffect(() => {
     if (error) ToastController.showErrorToast({ description: error.message });
   }, [error]);
 
+  // Set comments when data is fetched
   useEffect(() => {
     if (!data) return;
     setComments(data);
@@ -70,6 +75,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     setIsEdit(true);
   };
 
+  // Handle sending a new comment
   const sendMessage = async () => {
     if (input.trim().length === 0)
       return ToastController.showErrorToast({
@@ -87,11 +93,13 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     setInput('');
   };
 
+  // Handle task deletion
   const handleDelete = () => {
     AlertController.show({ callback: async () => await deleteTask(taskId) });
     ModalController.close();
   };
 
+  // Handle task status update
   const handleStatusUpdate = async (status: TaskStatus) => {
     setIsLoading(true);
     await updateTask({
@@ -102,6 +110,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     ModalController.close();
   };
 
+  // Handle comment deletion
   const handleCommentDeletion = (commentId: string) => {
     AlertController.show({
       title: 'Delete comment?',
@@ -110,6 +119,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     });
   };
 
+  // Delete comment from the list
   const deleteComment = async (commentId: string) => {
     if (!project) return;
     try {
@@ -124,8 +134,10 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
     }
   };
 
+  // Use Enter key shortcut to send the message
   useKeyShortcut({ hotkey: 'Enter', action: sendMessage });
 
+  // Render the InputTaskModal if in edit mode
   if (isEdit)
     return (
       <InputTaskModal
@@ -140,15 +152,20 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
         'bg-white relative w-full md:max-w-screen-md text-start min-h-40 px-3 py-4 rounded-xl space-y-2 flex flex-col'
       )}
     >
+      {/* Title & Description */}
       <Text.Headline className="text-black font-medium text-[15px]">
         {title}
       </Text.Headline>
       <Text.Body className="text-black/60 max-w-[70%]">{description}</Text.Body>
+
+      {/* Assigned To Container */}
       <AssigneeContainer
         assigneeId={task?.assigneeId || ''}
         className="mr-auto"
       />
       <div className="divider" />
+
+      {/* Comments Container */}
       <Text.Body>{`Comments (${comments.length})`}</Text.Body>
       <CommentsContainer
         onDelete={handleCommentDeletion}
@@ -164,6 +181,7 @@ export default function TaskModal({ taskId }: TaskModalProps): JSX.Element {
         placeholder="Comment (Press enter to send)"
       />
 
+      {/* Edit / Delete Buttons */}
       {editable && deletable && <div className="divider" />}
       <div className="flex w-full space-x-2">
         {editable && (

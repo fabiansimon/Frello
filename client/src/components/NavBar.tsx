@@ -3,7 +3,6 @@ import { cn, pluralize } from '../lib/utils';
 import Text from './Text';
 import { GitbookIcon, UserIcon, UserMultiple02Icon } from 'hugeicons-react';
 import ModalController from '@/controllers/ModalController';
-import AuthModal from './AuthModal';
 import { useProjectContext } from '@/providers/projectProvider';
 import { useNavigate } from 'react-router-dom';
 import { route, ROUTES } from '@/constants/routes';

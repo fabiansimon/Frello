@@ -79,7 +79,10 @@ export default function LandingPage() {
 
   return (
     <div className="flex w-full h-full bg-neutral-100">
+      {/* Loading Spinner */}
       {isLoading && <span className="text-black/60 mx-auto loading"></span>}
+
+      {/* Projects List */}
       {projects && (
         <div
           className={
