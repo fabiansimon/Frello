@@ -5,7 +5,7 @@ services:
     image: postgres:13
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: seas11
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: frello
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -20,7 +20,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://postgres:seas11@db:5432/frello
+      DATABASE_URL: postgresql://postgres:password@db:5432/frello
       OPENAI_KEY: ${OPENAI_KEY}
       JWT_SECRET: ${JWT_SECRET}
       EMAIL_USER: ${EMAIL_USER}
