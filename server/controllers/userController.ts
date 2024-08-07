@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure } from '../trpc';
+import { protectedProcedure, publicProcedure } from '../trpc';
 import { prisma } from '..';
 import { signToken } from '../utils/jwt';
 
@@ -69,6 +69,33 @@ export const loginUser = publicProcedure
       return { user, token };
     } catch (error) {
       console.error('Error login in user:', error);
+      throw error;
+    }
+  });
+
+// Procedure to update an existing User
+export const updateUser = protectedProcedure
+  .input(
+    z.object({
+      name: z.string().optional(),
+      role: z.string().optional(),
+      expertise: z.string().optional(),
+    })
+  )
+  .mutation(async ({ input, ctx }) => {
+    try {
+      const { userId } = ctx;
+      const { ...updates } = input;
+
+      // Update the existing user by ID
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: updates,
+      });
+
+      return user;
+    } catch (error) {
+      console.error('Error updating task:', error);
       throw error;
     }
   });

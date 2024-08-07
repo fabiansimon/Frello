@@ -1,10 +1,15 @@
 import { cn } from '@/lib/utils';
 import Text from './Text';
 import { useMemo, useState } from 'react';
+import { User } from '@prisma/client';
 import { AuthInput } from '@/lib';
 import { useUserContext } from '@/providers/userProvider';
 import { REGEX } from '@/constants/regex';
 import ToastController from '@/controllers/ToastController';
+import AlertController from '@/controllers/AlertController';
+import { useNavigate } from 'react-router-dom';
+import { route, ROUTES } from '@/constants/routes';
+import ModalController from '@/controllers/ModalController';
 
 enum InputType {
   NAME,
@@ -13,19 +18,30 @@ enum InputType {
   EXPERTISE,
 }
 
-export default function AuthModal(): JSX.Element {
-  const { register, login } = useUserContext();
+export default function AuthModal({ user }: { user?: User }): JSX.Element {
+  const { register, login, update, logout } = useUserContext();
+
+  const navigation = useNavigate();
 
   const [isLogin, setIsLogin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [input, setInput] = useState<AuthInput>({
-    email: '',
-    expertise: '',
-    name: '',
-    role: '',
+    email: user?.email || '',
+    expertise: user?.expertise || '',
+    name: user?.name || '',
+    role: user?.role || '',
   });
 
+  const isUpdate = user !== undefined;
+
   const validInput = useMemo(() => {
+    if (isUpdate)
+      return (
+        input.name.trim() !== user.name ||
+        input.role.trim() !== user.role ||
+        input.expertise.trim() !== user.expertise
+      );
+
     if (isLogin) return input.email.trim();
     return (
       input.email.trim() &&
@@ -33,7 +49,40 @@ export default function AuthModal(): JSX.Element {
       input.name.trim() &&
       input.role.trim()
     );
-  }, [input, isLogin]);
+  }, [input, isLogin, isUpdate]);
+
+  const { button, title, underlineText } = useMemo(() => {
+    if (isUpdate)
+      return {
+        title: 'Update Account',
+        button: 'Update',
+        underlineText: 'Log out',
+      };
+    return {
+      title: isLogin ? 'Login in Account' : 'Create new Account',
+      button: isLogin ? 'Login' : 'Create',
+      underlineText: isLogin ? 'Register instead' : 'Login instead',
+    };
+  }, [isUpdate, isLogin]);
+
+  const handleLogout = async () => {
+    AlertController.show({
+      title: 'Log out?',
+      description: 'Are you sure you want to log out?',
+      buttonText: 'Continue',
+      callback: () => {
+        ModalController.close();
+        logout();
+        navigation(route(ROUTES.home));
+      },
+    });
+  };
+  const handleUpdate = async () => {
+    setIsLoading(true);
+    await update({ updates: input });
+    setIsLoading(false);
+    ModalController.close();
+  };
 
   const handleAuth = async () => {
     if (!REGEX.email.test(input.email))
@@ -79,7 +128,7 @@ export default function AuthModal(): JSX.Element {
       )}
     >
       <Text.Headline className="text-black font-medium text-[15px]">
-        {isLogin ? 'Login in Account' : 'Create new Account'}
+        {title}
       </Text.Headline>
 
       {/* Name Part & Role Part */}
@@ -116,11 +165,14 @@ export default function AuthModal(): JSX.Element {
       <Text.Body className="font-medium pt-4">Email</Text.Body>
       <input
         onInput={({ currentTarget: { value } }) =>
-          handleInput(InputType.EMAIL, value)
+          !isUpdate && handleInput(InputType.EMAIL, value)
         }
         type="email"
         value={input.email}
-        className="input text-sm bg-white text-black input-bordered w-full"
+        className={cn(
+          'input text-sm bg-white text-black input-bordered w-full',
+          isUpdate && 'bg-neutral-200 opacity-50 cursor-not-allowed'
+        )}
         placeholder="fabian.simon98@gmail.com"
       />
 
@@ -142,24 +194,24 @@ export default function AuthModal(): JSX.Element {
       <div className="divider" />
 
       <button
-        onClick={handleAuth}
+        onClick={isUpdate ? handleUpdate : handleAuth}
         disabled={!validInput || isLoading}
         className="btn btn-primary max-h-12"
       >
         {isLoading ? (
           <span className="loading text-white"></span>
         ) : (
-          <Text.Body className="text-white">
-            {isLogin ? 'Login' : 'Create'}
-          </Text.Body>
+          <Text.Body className="text-white">{button}</Text.Body>
         )}
       </button>
 
       <Text.Body
-        onClick={() => setIsLogin((prev) => !prev)}
+        onClick={() =>
+          isUpdate ? handleLogout() : setIsLogin((prev) => !prev)
+        }
         className="text-black/60 cursor-pointer underline mx-auto py-2"
       >
-        {isLogin ? 'Register instead' : 'Login instead'}
+        {underlineText}
       </Text.Body>
     </div>
   );

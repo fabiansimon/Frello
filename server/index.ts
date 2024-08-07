@@ -24,7 +24,11 @@ import {
   removeComment,
   fetchComments,
 } from './controllers/commentController';
-import { loginUser, registerUser } from './controllers/userController';
+import {
+  loginUser,
+  registerUser,
+  updateUser,
+} from './controllers/userController';
 import { Context, router } from './trpc';
 
 // Initialize Prisma Client for database interaction
@@ -44,6 +48,7 @@ export const appRouter = router({
   updateTask,
   registerUser,
   loginUser,
+  updateUser,
   fetchComments,
   createComment,
   removeComment,

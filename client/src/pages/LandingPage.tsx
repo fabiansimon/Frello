@@ -83,7 +83,7 @@ export default function LandingPage() {
       {isLoading && <span className="text-black/60 mx-auto loading"></span>}
 
       {/* Projects List */}
-      {projects && (
+      {isAuth && projects && (
         <div
           className={
             'bg-white grow shadow-md md:max-w-screen-md shadow-black/5 flex max-w-[70%] border border-black/5 flex-col text-start px-3 py-4 rounded-xl space-y-2 m-auto'
